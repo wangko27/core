@@ -108,6 +108,8 @@ public:
 
     std::wstring									m_strTmpDirectory;
 
+    std::map<_UINT32, CRecordExOleObjStg>           m_mapExOleObjStg;
+
 	// вся инфа о ex - файлах
 	CExMedia										m_oExMedia;
 

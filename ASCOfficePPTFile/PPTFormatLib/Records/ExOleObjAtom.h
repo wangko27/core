@@ -69,8 +69,10 @@ class CRecordExOleObjStg : public CUnknownRecord
 public:
 	std::wstring m_sFileName;
 	std::wstring m_strTmpDirectory;
+    int m_nIndex;
 	
-	CRecordExOleObjStg(std::wstring strTemp) : m_strTmpDirectory(strTemp)
+    CRecordExOleObjStg(std::wstring strTemp, int index) :
+        m_strTmpDirectory(strTemp), m_nIndex(index)
 	{
 	}
 
@@ -99,7 +101,8 @@ public:
 		if (m_oHeader.RecInstance == 0x01)
 		{
 			BYTE* pDataUncompress = (compressedSize > 0 && compressedSize < 0xffffff) ?  new BYTE[decompressedSize + 64] : NULL;
-            if ((pDataUncompress) && (NSZip::Decompress(pData, compressedSize, pDataUncompress, decompressedSize)))
+            auto unzipStatus = NSZip::Decompress(pData, compressedSize, pDataUncompress, decompressedSize);
+            if ((pDataUncompress) && unzipStatus == S_OK)
 			{
 				delete []pData;
 				pData = pDataUncompress;
@@ -116,7 +119,8 @@ public:
 		//}
 		if (pData)
 		{
-			m_sFileName = m_strTmpDirectory + FILE_SEPARATOR_STR +  L"oleObject_xxx.bin";
+            m_sFileName = m_strTmpDirectory + FILE_SEPARATOR_STR +
+                    L"oleObject" + std::to_wstring(m_nIndex) + L".bin";
 			
 			NSFile::CFileBinary file;
             if (file.CreateFileW(m_sFileName))

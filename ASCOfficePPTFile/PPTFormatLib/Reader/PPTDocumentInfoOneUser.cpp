@@ -357,10 +357,9 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
     m_oDocument.GetRecordsByType(&oArrayExObjCont, false, true);
     std::vector<CRecordExOleObjAtom*> oArrayExOleObjAtom;
     m_oDocument.GetRecordsByType(&oArrayExOleObjAtom, true, true);
-    if (oArrayExObjCont.size() && oArrayExOleObjAtom.size())
+    for (int i = 0; i < (int)oArrayExOleObjAtom.size(); i++)
     {
-        nIndexPsrRef = m_mapOffsetInPIDs.find(oArrayExOleObjAtom[0]->m_nPersistID);
-
+        nIndexPsrRef = m_mapOffsetInPIDs.find(oArrayExOleObjAtom[i]->m_nPersistID);
         if (m_mapOffsetInPIDs.end() != nIndexPsrRef)
         {
             offset_stream = (long)nIndexPsrRef->second;
@@ -373,8 +372,12 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
                 pStreamTmp = m_arStreamDecrypt.back()->stream_;
             }
             oHeader.ReadFromStream(pStreamTmp);
-            std::shared_ptr<CRecordExOleObjStg> exOleObjStg(new CRecordExOleObjStg(L"~/ole"));
-            exOleObjStg->ReadFromStream(oHeader, pStream);
+            CRecordExOleObjStg exOleObjStg(m_strTmpDirectory, i+1);
+
+            exOleObjStg.ReadFromStream(oHeader, pStream);
+            m_mapExOleObjStg.insert(std::make_pair(
+                                        oArrayExOleObjAtom[i]->m_nExObjID,
+                                        exOleObjStg));
         }
     }
     if (!oArrayDoc.empty())
