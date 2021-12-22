@@ -606,7 +606,7 @@ bool TCell::isInvisibleBorder() const
 
     bool isInvisibele = true;
     for (auto IterBorder : m_mapBorders)
-        if (IterBorder.second->m_oBrush.Type != c_BrushTypeNoFill)
+        if (IterBorder.second->m_oBrush.Alpha1 == 0)
             isInvisibele = false;
 
     return isInvisibele;
@@ -623,7 +623,7 @@ void TCell::FillLn(PPTX::Logic::Ln &Ln, TCell::eBorderPossition eBP, CShapeEleme
 
     Ln.w = pen.Size;
 
-    if (brush.Type == c_BrushTypeNoFill)
+    if (brush.Alpha1 == 0)
         Ln.Fill.Fill.reset(new PPTX::Logic::NoFill);
     else
     {

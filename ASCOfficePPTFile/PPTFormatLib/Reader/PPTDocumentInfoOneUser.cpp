@@ -353,6 +353,30 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
     std::vector<CRecordDocumentAtom*> oArrayDoc;
     m_oDocument.GetRecordsByType(&oArrayDoc, true, true);
 
+    std::vector<CRecordExObjListContainer*> oArrayExObjCont;
+    m_oDocument.GetRecordsByType(&oArrayExObjCont, false, true);
+    std::vector<CRecordExOleObjAtom*> oArrayExOleObjAtom;
+    m_oDocument.GetRecordsByType(&oArrayExOleObjAtom, true, true);
+    if (oArrayExObjCont.size() && oArrayExOleObjAtom.size())
+    {
+        nIndexPsrRef = m_mapOffsetInPIDs.find(oArrayExOleObjAtom[0]->m_nPersistID);
+
+        if (m_mapOffsetInPIDs.end() != nIndexPsrRef)
+        {
+            offset_stream = (long)nIndexPsrRef->second;
+            StreamUtils::StreamSeek(offset_stream, pStream);
+
+            POLE::Stream *pStreamTmp = pStream;
+            if (m_pDecryptor)
+            {
+                DecryptStream(pStream, oArrayExOleObjAtom[0]->m_nExObjID);
+                pStreamTmp = m_arStreamDecrypt.back()->stream_;
+            }
+            oHeader.ReadFromStream(pStreamTmp);
+            std::shared_ptr<CRecordExOleObjStg> exOleObjStg(new CRecordExOleObjStg(L"~/ole"));
+            exOleObjStg->ReadFromStream(oHeader, pStream);
+        }
+    }
     if (!oArrayDoc.empty())
     {
         nIndexPsrRef = m_mapOffsetInPIDs.find(oArrayDoc[0]->m_nNotesMasterPersistIDRef);

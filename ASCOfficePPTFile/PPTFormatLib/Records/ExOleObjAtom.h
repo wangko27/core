@@ -34,6 +34,7 @@
 
 class CRecordExOleObjAtom : public CUnknownRecord
 {
+public:
 	UINT m_nDrawAspect;
 	UINT m_nType;
 	UINT m_nExObjID;
