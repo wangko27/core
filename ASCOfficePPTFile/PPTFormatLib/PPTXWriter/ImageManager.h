@@ -370,6 +370,11 @@ namespace PPT_FORMAT
 		{
 			return WriteHyperlinkMedia(strImage, bExternal, false, L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio");
 		}
+        inline std::wstring WriteOle(const std::wstring& strOLE, bool bExternal = true)
+        {
+            // TODO http link
+            return WriteHyperlinkMedia(strOLE, bExternal, false, L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/ole");
+        }
         inline std::wstring WriteHyperlinkVideo(const std::wstring& strImage, bool bExternal = true)
 		{
 			return WriteHyperlinkMedia(strImage, bExternal, false, L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/video");

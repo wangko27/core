@@ -158,6 +158,7 @@ public:
 
 	void LoadExVideo(CRecordsContainer* pExObject);
 	void LoadExAudio(CRecordsContainer* pExObject);
+    void LoadExOle(CRecordsContainer* pExObject);
 
     void LoadAutoNumbering(CRecordGroupShapeContainer* pGroupContainer, PPT_FORMAT::CTheme* pTheme);
     void LoadBulletBlip(CShapeElement* pShape);

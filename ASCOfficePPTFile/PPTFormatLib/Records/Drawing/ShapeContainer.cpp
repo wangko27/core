@@ -1654,6 +1654,11 @@ CElementPtr CRecordShapeContainer::GetElement (bool inGroup, CExMedia* pMapIDs,
                 CImageElement* pImageElem		= new CImageElement();
                 pImageElem->m_strImageFileName	= oInfo.m_strFilePath + FILE_SEPARATOR_STR;
 
+                if (pImageElem->m_bOLE)
+                {
+                    pImageElem->m_strOleFileName    = pInfo->m_strFilePath;
+                    pImageElem->m_sOleName          = pInfo->m_name;
+                }
                 pElement = CElementPtr(pImageElem);
             }
         }break;

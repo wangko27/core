@@ -32,6 +32,8 @@
 #pragma once
 #include "../Reader/Records.h"
 
+class CRecordExOleEmbedContainer : public CRecordsContainer {};
+
 class CRecordExOleEmbedAtom : public CUnknownRecord
 {
 public:

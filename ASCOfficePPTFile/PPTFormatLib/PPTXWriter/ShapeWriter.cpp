@@ -2229,6 +2229,11 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage()
 
     if (strRid.empty()) return _T("");
 
+    std::wstring strOleRid;
+    if (pImageElement->m_bOLE && pImageElement->m_strOleFileName.size())
+    {
+//        strOleRid = m_pRels->WriteOle(pImageElement->m_strOleFileName);
+    }
     m_oWriter.WriteString(std::wstring(L"<p:pic>"));
 
     WriteImageInfo();

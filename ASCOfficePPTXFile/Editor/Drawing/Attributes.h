@@ -82,8 +82,9 @@ public:
         eftAudio	= 2,
         eftHyperlink    = 3,
         eftObject	= 4,
-        eftSlide        = 5/*,
-        eftFile         = 6*/
+        eftSlide        = 5,
+        eftOle          = 6/*,
+        eftFile         = 7*/
     };
 
     ExFilesType     m_type;
@@ -172,6 +173,7 @@ public:
     std::vector<CExFilesInfo>	m_arHyperlinks;
     std::vector<CExFilesInfo>	m_arSlides;
     std::vector<CExFilesInfo>   m_arFiles;
+    std::vector<CExFilesInfo>   m_arOle;
 
     std::vector<CExFilesInfo>	m_arAudioCollection;
 
@@ -180,6 +182,8 @@ public:
         m_arVideos.clear();
         m_arImages.clear();
         m_arAudios.clear();
+        m_arHyperlinks.clear();
+        m_arOle.clear();
         m_arAudioCollection.clear();
     }
 
@@ -202,6 +206,10 @@ public:
             m_arImages.push_back(oSrc.m_arImages[i]);
         for (size_t i=0; i < oSrc.m_arVideos.size(); i++)
             m_arAudios.push_back(oSrc.m_arAudios[i]);
+        for (size_t i=0; i < oSrc.m_arOle.size(); i++)
+            m_arOle.push_back(oSrc.m_arOle[i]);
+        for (size_t i=0; i < oSrc.m_arHyperlinks.size(); i++)
+            m_arHyperlinks.push_back(oSrc.m_arHyperlinks[i]);
 
         return *this;
     }
@@ -252,6 +260,19 @@ public:
             if (dwID == m_arImages[i].m_dwID)
             {
                 return &m_arImages[i];
+            }
+        }
+
+        return NULL;
+    }
+    CExFilesInfo* LockOle(_UINT32 dwID)
+    {
+        size_t nCount = m_arOle.size();
+        for (size_t i = 0; i < nCount; ++i)
+        {
+            if (dwID == m_arOle[i].m_dwID)
+            {
+                return &m_arOle[i];
             }
         }
 
@@ -312,6 +333,13 @@ public:
             eType = CExFilesInfo::eftSlide;
             return pInfo;
         }
+        pInfo = LockOle(dwID);
+        if (NULL != pInfo)
+        {
+            eType = CExFilesInfo::eftOle;
+            return pInfo;
+        }
+
         eType = CExFilesInfo::eftNone;
         return LockImage(dwID);
     }

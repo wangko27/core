@@ -372,7 +372,9 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
                 pStreamTmp = m_arStreamDecrypt.back()->stream_;
             }
             oHeader.ReadFromStream(pStreamTmp);
-            CRecordExOleObjStg exOleObjStg(m_strTmpDirectory, i+1);
+            const std::wstring folderOle = m_strTmpDirectory
+                    + FILE_SEPARATOR_STR + L"embeddings";
+            CRecordExOleObjStg exOleObjStg(folderOle, i+1);
 
             exOleObjStg.ReadFromStream(oHeader, pStream);
             m_mapExOleObjStg.insert(std::make_pair(
@@ -2348,6 +2350,18 @@ void CPPTUserInfo::LoadExternal(CRecordExObjListContainer* pExObjects)
     oArray.clear();
     // -----------------------------------------------------------
 
+    // читаем OLE ------------------------------------------------
+    std::vector<CRecordExOleEmbedContainer*> oArrayOle;
+    pExObjects->GetRecordsByType(&oArrayOle, true);
+
+    for (size_t nIndex = 0; nIndex < oArrayOle.size(); ++nIndex)
+    {
+        LoadExOle(oArrayOle[nIndex]);
+    }
+
+    oArrayOle.clear();
+    // -----------------------------------------------------------
+
     // читаем аудио ----------------------------------------------
     std::vector<CRecordExCDAudioContainer*>			oArrayAudioCD;
     std::vector<CRecordExMIDIAudioContainer*>		oArrayAudioMIDI;
@@ -2512,6 +2526,33 @@ void CPPTUserInfo::LoadExAudio(CRecordsContainer* pExObject)
 
     oArrayExMedia.clear();
     oArrayCString.clear();
+}
+
+void CPPTUserInfo::LoadExOle(CRecordsContainer *pExObject)
+{
+    std::vector<CRecordExOleObjAtom*> oArrayExOle;
+    std::vector<CRecordCString*> oArrayCString;
+
+    pExObject->GetRecordsByType(&oArrayExOle, false);
+    pExObject->GetRecordsByType(&oArrayCString, false);
+
+    if ((1 == oArrayExOle.size()) && (3 == oArrayCString.size()))
+    {
+        PPT_FORMAT::CExFilesInfo oInfo;
+
+        oInfo.m_dwID			= oArrayExOle[0]->m_nExObjID;
+        auto oleIter            = m_mapExOleObjStg.find(oInfo.m_dwID);
+        if (oleIter == m_mapExOleObjStg.end())
+            return;
+
+        oInfo.m_strFilePath		= oleIter->second.m_sFileName;
+        oInfo.m_name            = oArrayCString[0]->m_strText;
+        oInfo.m_bLoop			= false;
+
+        m_oExMedia.m_arOle.push_back(oInfo);
+    }
+
+    return;
 }
 
 //void CPPTUserInfo::AddAnimation ( _UINT32 dwSlideID, double Width, double Height, CElementPtr pElement )

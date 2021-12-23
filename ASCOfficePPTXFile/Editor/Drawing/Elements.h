@@ -283,6 +283,7 @@ class CImageElement : public CElement
 {
 public:
     std::wstring	m_strImageFileName;
+    std::wstring	m_strOleFileName;
 
     BYTE			m_nAlpha;
 
@@ -303,6 +304,7 @@ public:
     bool			m_bImagePresent;
 
     std::wstring	m_sImageName;
+    std::wstring	m_sOleName;
 
     CImageElement() : CElement()
     {
