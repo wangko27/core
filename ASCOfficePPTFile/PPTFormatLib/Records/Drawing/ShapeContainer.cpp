@@ -1655,6 +1655,10 @@ CElementPtr CRecordShapeContainer::GetElement (bool inGroup, CExMedia* pMapIDs,
 
                 pOleElem->m_strOleFileName	 = oInfo.m_strFilePath;
                 pOleElem->m_strImageFileName = oInfoDefault.m_strFilePath + FILE_SEPARATOR_STR;
+
+                pOleElem->m_progId           = oInfo.m_progId;
+                pOleElem->m_sName            = oInfo.m_name;
+                pOleElem->m_oleTypeName      = oInfo.m_oleTypeName;
             }
             else
             {

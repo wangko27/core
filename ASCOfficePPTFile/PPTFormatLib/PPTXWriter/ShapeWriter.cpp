@@ -2356,8 +2356,9 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage()
 
 std::wstring CShapeWriter::ConvertOle()
 {
+    std::wstring strPic = ConvertImage();
 
-    return ConvertImage();
+    return strPic;
 }
 HRESULT PPT_FORMAT::CShapeWriter::get_Type(LONG* lType)
 {

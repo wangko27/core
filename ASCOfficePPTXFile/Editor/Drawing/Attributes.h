@@ -92,6 +92,10 @@ public:
     std::wstring    m_strFilePath;
     std::wstring    m_name;
 
+    // For OLE
+    std::wstring    m_progId;
+    std::wstring    m_oleTypeName;
+
     // clip
     double			m_dStartTime;
     double			m_dEndTime;

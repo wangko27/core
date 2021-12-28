@@ -2544,8 +2544,11 @@ void CPPTUserInfo::LoadExOle(CRecordsContainer *pExObject)
         if (oleIter == m_mapExOleObjStg.end())
             return;
 
+        oInfo.m_name        = oArrayCString[0]->m_strText;
+        oInfo.m_progId      = oArrayCString[1]->m_strText;
+        oInfo.m_oleTypeName = oArrayCString[2]->m_strText;
+
         oInfo.m_strFilePath		= oleIter->second.m_sFileName;
-        oInfo.m_name            = oArrayCString[0]->m_strText;
         oInfo.m_bLoop			= false;
         oInfo.m_type            = oInfo.eftOle;
 

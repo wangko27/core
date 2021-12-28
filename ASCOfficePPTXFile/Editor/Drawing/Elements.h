@@ -852,6 +852,9 @@ public:
 
 public:
     std::wstring m_strOleFileName;
+    std::wstring m_oleTypeName;
+    std::wstring m_progId;
+    std::wstring m_sName;
 };
 }
 
