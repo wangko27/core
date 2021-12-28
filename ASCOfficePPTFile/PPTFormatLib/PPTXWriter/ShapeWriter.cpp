@@ -39,6 +39,7 @@
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/SpTreeElem.h"
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/Shape.h"
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/SpTree.h"
+#include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/GraphicFrame.h"
 
 #include <iostream>
 #include <ostream>
@@ -663,7 +664,7 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertColor(CColor & color, long alpha)
     }
     return color_writer.GetData();
 }
-void PPT_FORMAT::CShapeWriter::WriteImageInfo()
+void PPT_FORMAT::CShapeWriter::WriteImageInfo(bool noID)
 {
     CImageElement*	pImageElement = dynamic_cast<CImageElement*>(m_pElement.get());
     if (!pImageElement) return;
@@ -678,7 +679,9 @@ void PPT_FORMAT::CShapeWriter::WriteImageInfo()
 
     std::wstring strShapeID = std::to_wstring(pImageElement->m_lID);
 
-    m_oWriter.WriteString(std::wstring(L"<p:cNvPr id=\"") + strShapeID + L"\"" );
+    m_oWriter.WriteString(std::wstring(L"<p:cNvPr"));
+    if (noID == false)
+        m_oWriter.WriteString(std::wstring(L" id=\"") + strShapeID + L"\"" );
 
     if (pImageElement->m_sName.empty())
     {
@@ -2206,7 +2209,7 @@ void PPT_FORMAT::CShapeWriter::ParseXmlAlternative(const std::wstring & xml)
 }
 
 
-std::wstring PPT_FORMAT::CShapeWriter::ConvertImage()
+std::wstring PPT_FORMAT::CShapeWriter::ConvertImage(bool noID)
 {
     CImageElement* pImageElement = dynamic_cast<CImageElement*>(m_pElement.get());
     if (!pImageElement) return L"";
@@ -2233,7 +2236,7 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage()
 
     m_oWriter.WriteString(std::wstring(L"<p:pic>"));
 
-    WriteImageInfo();
+    WriteImageInfo(noID);
 
     CGeomShapeInfo oInfo;
 
@@ -2356,9 +2359,48 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage()
 
 std::wstring CShapeWriter::ConvertOle()
 {
-    std::wstring strPic = ConvertImage();
+    PPT_FORMAT::CStringWriter oWriter;
+    auto pOleElement = dynamic_cast<COleElement*>(m_pElement.get());
+    if (pOleElement == nullptr)
+        return ConvertImage();
 
-    return strPic;
+    oWriter.WriteString(L"<p:graphicFrame>");
+
+    // <p:nvGraphicFramePr>
+    PPTX::Logic::NvGraphicFramePr oNvGFPr;
+    oNvGFPr.cNvPr.id = m_pElement->m_lID;
+    oNvGFPr.cNvPr.name = m_pElement->m_sName;
+
+    PPTX::Logic::Ext ext;
+    ext.uri = L"{FF2B5EF4-FFF2-40B4-BE49-F238E27FC236}";
+    oNvGFPr.nvPr.extLst.push_back(ext);
+    oWriter.WriteString(oNvGFPr.toXML());
+
+    // <p:xfrm>
+    PPTX::Logic::Xfrm oXFRM;
+    oXFRM.node_name = L"p:xfrm";
+    double multip1 = m_pElement->m_bAnchorEnabled ? 1587.5 : 1;
+
+    oXFRM.offX = round(m_pElement->m_rcAnchor.left * multip1);
+    oXFRM.offY = round(m_pElement->m_rcAnchor.top  * multip1);
+
+    oXFRM.extX = round(m_pElement->m_rcAnchor.GetWidth()  * multip1);
+    oXFRM.extY = round(m_pElement->m_rcAnchor.GetHeight() * multip1);
+    oWriter.WriteString(oXFRM.toXML());
+
+    // <a:graphic> // chart
+    std::wstring oleTypeName = pOleElement->m_sName;
+    std::wstring oleRid = m_pRels->WriteOle(pOleElement->m_strOleFileName);
+    if (oleTypeName == L"Chart" && false)
+    {
+        oWriter.WriteString(L"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\"><mc:AlternateContent><mc:Choice Requires=\"v\"><p:oleObj ");
+        std::wstring spid = L"_x0000_s2051";
+
+    } else
+        return ConvertImage();
+
+
+    return oWriter.GetData();
 }
 HRESULT PPT_FORMAT::CShapeWriter::get_Type(LONG* lType)
 {

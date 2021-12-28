@@ -47,11 +47,14 @@ namespace PPT_FORMAT
 		long									m_lIndexNextAudio;
 		long									m_lIndexNextVideo;
 		long									m_lIndexNextImage;
+        long                                    m_lIndexNextOle;
 
 		std::wstring							m_strDstMedia;
 
 	public:
-		CMediaManager() : m_lIndexNextImage(0), m_lIndexNextAudio(0), m_lIndexNextVideo(0)
+        CMediaManager() :
+            m_lIndexNextImage(0), m_lIndexNextAudio(0),
+            m_lIndexNextVideo(0), m_lIndexNextOle(0)
 		{
 		}
 		~CMediaManager()
@@ -81,10 +84,14 @@ namespace PPT_FORMAT
 		inline std::wstring GenerateVideo(const std::wstring& strInput)
 		{
 			return GenerateMedia(strInput, L"video", m_lIndexNextVideo, L".avi");
-		}
-		inline std::wstring GenerateAudio(const std::wstring& strInput)
-		{
-			return GenerateMedia(strInput, L"audio", m_lIndexNextAudio, L".wav");
+        }
+        inline std::wstring GenerateAudio(const std::wstring& strInput)
+        {
+            return GenerateMedia(strInput, L"audio", m_lIndexNextAudio, L".wav");
+        }
+        inline std::wstring GenerateOle(const std::wstring& strInput)
+        {
+            return GenerateMedia(strInput, L"oleObject", m_lIndexNextOle, L".bin", L"../embeddings/");
         }
         inline std::wstring GenerateImage(const std::wstring& strInput)
         {
@@ -94,7 +101,7 @@ namespace PPT_FORMAT
         {
             return GenerateMedia(strInput, L"image", m_lIndexNextImage, L".jpeg");
         }
-		inline std::wstring GenerateMedia(const std::wstring& strInput, const std::wstring& Template, long & Indexer, const std::wstring& strDefaultExt)
+        inline std::wstring GenerateMedia(const std::wstring& strInput, const std::wstring& Template, long & Indexer, const std::wstring& strDefaultExt, const std::wstring& strFolder = L"../media/")
 		{
 			std::map<std::wstring, std::wstring>::iterator pPair = m_mapMedia.find(strInput);
 			if (m_mapMedia.end() != pPair)
@@ -121,7 +128,7 @@ namespace PPT_FORMAT
 			if (-1 != nIndexExt)
 				strExts = strInput.substr(nIndexExt);
 
-			if (strExts == _T(".video") || strExts == _T(".audio"))
+            if (strExts == _T(".video") || strExts == _T(".audio"))
 			{
 				std::wstring strInput1 = strInput.substr(0, nIndexExt);
 				nIndexExt = strInput1.rfind(wchar_t('.'));
@@ -131,8 +138,8 @@ namespace PPT_FORMAT
 
 			std::wstring strMediaName = Template + std::to_wstring(++Indexer);
 
-			std::wstring strOutput = m_strDstMedia + strMediaName + strExts;		
-			strMediaName  = _T("../media/") + strMediaName + strExts;
+            std::wstring strOutput = m_strDstMedia + strFolder + strMediaName + strExts;
+            strMediaName  = strFolder + strMediaName + strExts;
 
 			// теперь нужно скопировать
 			if (strOutput != strInput)
@@ -145,6 +152,7 @@ namespace PPT_FORMAT
 			m_mapMedia[strInput] = strMediaName;
 			return strMediaName;
 		}
+
         inline void WriteAudioCollection(const std::vector<CExFilesInfo>& audioCont)
         {
             if (audioCont.empty()) return;
@@ -372,8 +380,9 @@ namespace PPT_FORMAT
 		}
         inline std::wstring WriteOle(const std::wstring& strOLE, bool bExternal = true)
         {
-            // TODO http link
-            return WriteHyperlinkMedia(strOLE, bExternal, false, L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/ole");
+
+            std::wstring strEmbeddings = m_pManager->GenerateOle(strOLE);
+            return WriteHyperlinkMedia(strEmbeddings, bExternal, false, L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/ole");
         }
         inline std::wstring WriteHyperlinkVideo(const std::wstring& strImage, bool bExternal = true)
 		{

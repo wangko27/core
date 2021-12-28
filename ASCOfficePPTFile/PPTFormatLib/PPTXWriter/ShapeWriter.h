@@ -173,7 +173,7 @@ namespace PPT_FORMAT
             std::wstring	ConvertTable	();
 			std::wstring	ConvertGroup	();
 			std::wstring	ConvertShape	();
-            std::wstring	ConvertImage	();
+            std::wstring	ConvertImage	(bool noID = false);
             std::wstring    ConvertOle      ();
             std::wstring	ConvertLine		(CPen		& pen);
             std::wstring	ConvertShadow	(CShadow	& shadow);
@@ -455,7 +455,7 @@ namespace PPT_FORMAT
         std::wstring ConvertTableRow();
         std::wstring ConvertTableCell();
 		void WriteShapeInfo();
-		void WriteImageInfo();
+        void WriteImageInfo(bool noID = false);
         void WriteTextInfo();
 		void Write3dShape();
 	};
