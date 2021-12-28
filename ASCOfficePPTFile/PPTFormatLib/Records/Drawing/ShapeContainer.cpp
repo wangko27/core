@@ -1648,17 +1648,18 @@ CElementPtr CRecordShapeContainer::GetElement (bool inGroup, CExMedia* pMapIDs,
                         pLayout->m_arElements.push_back(pElement);
                 }
 
+            } else if (CExFilesInfo::eftOle == exType)
+            {
+                COleElement* pOleElem		= new COleElement();
+                pElement = CElementPtr(pOleElem);
+
+                pOleElem->m_strOleFileName	 = oInfo.m_strFilePath;
+                pOleElem->m_strImageFileName = oInfoDefault.m_strFilePath + FILE_SEPARATOR_STR;
             }
             else
             {
                 CImageElement* pImageElem		= new CImageElement();
                 pImageElem->m_strImageFileName	= oInfo.m_strFilePath + FILE_SEPARATOR_STR;
-
-                if (pImageElem->m_bOLE)
-                {
-                    pImageElem->m_strOleFileName    = pInfo->m_strFilePath;
-                    pImageElem->m_sOleName          = pInfo->m_name;
-                }
                 pElement = CElementPtr(pImageElem);
             }
         }break;

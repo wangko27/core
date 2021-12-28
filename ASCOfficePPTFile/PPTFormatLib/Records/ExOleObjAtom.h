@@ -67,8 +67,8 @@ public:
 class CRecordExOleObjStg : public CUnknownRecord
 {
 public:
-	std::wstring m_sFileName;
-	std::wstring m_strTmpDirectory;
+    std::wstring m_sFileName;
+    std::wstring m_strTmpDirectory;
     int m_nIndex;
 	
     CRecordExOleObjStg(std::wstring strTemp, int index) :
@@ -77,8 +77,8 @@ public:
 	}
 
 	~CRecordExOleObjStg()
-	{
-	}
+    {
+    }
 
 	virtual void ReadFromStream(SRecordHeader & oHeader, POLE::Stream* pStream)
 	{

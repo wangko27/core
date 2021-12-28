@@ -372,9 +372,8 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
                 pStreamTmp = m_arStreamDecrypt.back()->stream_;
             }
             oHeader.ReadFromStream(pStreamTmp);
-            const std::wstring folderOle = m_strTmpDirectory
-                    + FILE_SEPARATOR_STR + L"embeddings";
-            CRecordExOleObjStg exOleObjStg(folderOle, i+1);
+            std::wstring tempOleDir = NSDirectory::GetTempPath() + FILE_SEPARATOR_STR + L"embeddings";
+            CRecordExOleObjStg exOleObjStg(tempOleDir, i+1);
 
             exOleObjStg.ReadFromStream(oHeader, pStream);
             m_mapExOleObjStg.insert(std::make_pair(
@@ -2548,6 +2547,7 @@ void CPPTUserInfo::LoadExOle(CRecordsContainer *pExObject)
         oInfo.m_strFilePath		= oleIter->second.m_sFileName;
         oInfo.m_name            = oArrayCString[0]->m_strText;
         oInfo.m_bLoop			= false;
+        oInfo.m_type            = oInfo.eftOle;
 
         m_oExMedia.m_arOle.push_back(oInfo);
     }

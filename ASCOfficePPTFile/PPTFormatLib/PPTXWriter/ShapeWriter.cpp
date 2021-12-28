@@ -2001,9 +2001,11 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertShape()
     CImageElement* pImageElement = dynamic_cast<CImageElement*>(m_pElement.get());
     CGroupElement* pGroupElement = dynamic_cast<CGroupElement*>(m_pElement.get());
     CShapeElement* pShapeElement = dynamic_cast<CShapeElement*>(m_pElement.get());
+    COleElement*   pOleElement   = dynamic_cast<COleElement*>  (m_pElement.get());
 
-    if (pImageElement) return ConvertImage();
-    if (pGroupElement) return ConvertGroup();
+    if (pOleElement)    return ConvertOle();
+    if (pImageElement)  return ConvertImage();
+    if (pGroupElement)  return ConvertGroup();
 
     if (pShapeElement == NULL) return _T("");
 
@@ -2229,11 +2231,6 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage()
 
     if (strRid.empty()) return _T("");
 
-    std::wstring strOleRid;
-    if (pImageElement->m_bOLE && pImageElement->m_strOleFileName.size())
-    {
-//        strOleRid = m_pRels->WriteOle(pImageElement->m_strOleFileName);
-    }
     m_oWriter.WriteString(std::wstring(L"<p:pic>"));
 
     WriteImageInfo();
@@ -2355,6 +2352,12 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage()
 
     pImageElement = NULL;
     return m_oWriter.GetData();
+}
+
+std::wstring CShapeWriter::ConvertOle()
+{
+
+    return ConvertImage();
 }
 HRESULT PPT_FORMAT::CShapeWriter::get_Type(LONG* lType)
 {

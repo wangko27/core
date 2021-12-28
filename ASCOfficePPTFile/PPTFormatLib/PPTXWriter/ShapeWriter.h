@@ -174,6 +174,7 @@ namespace PPT_FORMAT
 			std::wstring	ConvertGroup	();
 			std::wstring	ConvertShape	();
             std::wstring	ConvertImage	();
+            std::wstring    ConvertOle      ();
             std::wstring	ConvertLine		(CPen		& pen);
             std::wstring	ConvertShadow	(CShadow	& shadow);
             std::wstring	ConvertBrush	(CBrush		& brush);
