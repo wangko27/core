@@ -37,6 +37,7 @@
 #include <boost/algorithm/string.hpp>
 #include "../../../ASCOfficePPTXFile/Editor/Drawing/Attributes.h"
 #include "../../../DesktopEditor/common/File.h"
+#include "../../../DesktopEditor/common/Directory.h"
 namespace PPT_FORMAT
 {
 	class CMediaManager
@@ -91,7 +92,7 @@ namespace PPT_FORMAT
         }
         inline std::wstring GenerateOle(const std::wstring& strInput)
         {
-            return GenerateMedia(strInput, L"oleObject", m_lIndexNextOle, L".bin", L"../embeddings/");
+            return GenerateMedia(strInput, L"oleObject", m_lIndexNextOle, L".bin", L"embeddings");
         }
         inline std::wstring GenerateImage(const std::wstring& strInput)
         {
@@ -101,7 +102,7 @@ namespace PPT_FORMAT
         {
             return GenerateMedia(strInput, L"image", m_lIndexNextImage, L".jpeg");
         }
-        inline std::wstring GenerateMedia(const std::wstring& strInput, const std::wstring& Template, long & Indexer, const std::wstring& strDefaultExt, const std::wstring& strFolder = L"../media/")
+        inline std::wstring GenerateMedia(const std::wstring& strInput, const std::wstring& Template, long & Indexer, const std::wstring& strDefaultExt,const std::wstring& strFolder = L"media")
 		{
 			std::map<std::wstring, std::wstring>::iterator pPair = m_mapMedia.find(strInput);
 			if (m_mapMedia.end() != pPair)
@@ -137,13 +138,26 @@ namespace PPT_FORMAT
 			if (strExts == _T(".tmp") || strExts.empty()) strExts = strDefaultExt;
 
 			std::wstring strMediaName = Template + std::to_wstring(++Indexer);
+            std::wstring strOutputDir = m_strDstMedia;
+            if (strFolder != L"media")
+            {
+                auto iterMediaPath = strOutputDir.find(L"media");
+                if (iterMediaPath != std::wstring::npos)
+                {
+                    strOutputDir = strOutputDir.substr(0, iterMediaPath);
+                    strOutputDir += strFolder + L"/";
+                }
 
-            std::wstring strOutput = m_strDstMedia + strFolder + strMediaName + strExts;
-            strMediaName  = strFolder + strMediaName + strExts;
+            }
+
+            std::wstring strOutput = strOutputDir + strMediaName + strExts;
+            strMediaName  = std::wstring(L"../") + strFolder + L"/" + strMediaName + strExts;
+
 
 			// теперь нужно скопировать
 			if (strOutput != strInput)
             {
+                NSDirectory::CreateDirectory(strOutputDir);
                 if (NSFile::CFileBinary::Copy(strInput, strOutput) == false)
 				{
 					return L"";

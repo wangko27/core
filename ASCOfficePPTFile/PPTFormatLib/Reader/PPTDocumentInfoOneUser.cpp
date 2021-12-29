@@ -372,7 +372,7 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
                 pStreamTmp = m_arStreamDecrypt.back()->stream_;
             }
             oHeader.ReadFromStream(pStreamTmp);
-            std::wstring tempOleDir = NSDirectory::GetTempPath() + FILE_SEPARATOR_STR + L"embeddings";
+            std::wstring tempOleDir = NSFile::CFileBinary::GetTempPath();
             CRecordExOleObjStg exOleObjStg(tempOleDir, i+1);
 
             exOleObjStg.ReadFromStream(oHeader, pStream);

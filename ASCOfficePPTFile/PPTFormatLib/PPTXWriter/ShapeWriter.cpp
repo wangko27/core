@@ -2390,7 +2390,7 @@ std::wstring CShapeWriter::ConvertOle()
 
     // <a:graphic> // chart
     std::wstring oleTypeName = pOleElement->m_sName;
-    std::wstring oleRid = m_pRels->WriteOle(pOleElement->m_strOleFileName);
+    std::wstring oleRid = m_pRels->WriteOle(pOleElement->m_strOleFileName, false);
     if (oleTypeName == L"Chart" && false)
     {
         oWriter.WriteString(L"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\"><mc:AlternateContent><mc:Choice Requires=\"v\"><p:oleObj ");
