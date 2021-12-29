@@ -2391,11 +2391,22 @@ std::wstring CShapeWriter::ConvertOle()
     // <a:graphic> // chart
     std::wstring oleTypeName = pOleElement->m_sName;
     std::wstring oleRid = m_pRels->WriteOle(pOleElement->m_strOleFileName, false);
-    if (oleTypeName == L"Chart" && false)
+    if (oleRid.size())
     {
-        oWriter.WriteString(L"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\"><mc:AlternateContent><mc:Choice Requires=\"v\"><p:oleObj ");
-        std::wstring spid = L"_x0000_s2051";
+        oWriter.WriteString(L"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\"><mc:AlternateContent xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\"><mc:Choice xmlns:v=\"urn:schemas-microsoft-com:vml\" Requires=\"v\"><p:oleObj ");
+        std::wstring spid = L"_x0000_s" + std::to_wstring(m_pElement->m_lID + 1 /*count of ole*/);
+        std::wstring progId = pOleElement->m_progId;
 
+        // mc - namespace problem
+        oWriter.WriteString(L"spid=\"" + spid + L"\" name=\"" + oleTypeName + L"\" r:id=\"" + oleRid + L"\" imgW=\"8230313\" imgH=\"5529551\" progId=\"" + progId + L"\">");
+        oWriter.WriteString(L"<p:embed followColorScheme=\"full\"/></p:oleObj></mc:Choice><mc:Fallback><p:oleObj ");
+        oWriter.WriteString(L"name=\"" + oleTypeName + L"\" r:id=\"" + oleRid + L"\" imgW=\"8230313\" imgH=\"5529551\" progId=\"" + progId + L"\">");
+        oWriter.WriteString(L"<p:embed/>");
+        ConvertImage(true);
+        oWriter.WriteString(m_oWriter.GetData());
+        oWriter.WriteString(L"</p:oleObj></mc:Fallback></mc:AlternateContent></a:graphicData>");
+
+        oWriter.WriteString(L"</a:graphic></p:graphicFrame>");
     } else
         return ConvertImage();
 
