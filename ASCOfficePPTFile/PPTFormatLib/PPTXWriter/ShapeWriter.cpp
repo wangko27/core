@@ -40,6 +40,8 @@
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/Shape.h"
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/SpTree.h"
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/GraphicFrame.h"
+#include "../../../X2tConverter/src/ASCConverters.h"
+#include "../../../X2tConverter/src/cextracttools.h"
 
 #include <iostream>
 #include <ostream>
@@ -2390,28 +2392,38 @@ std::wstring CShapeWriter::ConvertOle()
 
     // <a:graphic> // chart
     std::wstring oleTypeName = pOleElement->m_sName;
-    std::wstring oleRid = m_pRels->WriteOle(pOleElement->m_strOleFileName, false);
-    if (oleRid.size())
+    std::wstring chartFile = ConvertOleFile2ChartXLSX(pOleElement->m_strOleFileName);
+    std::wstring chartRid = m_pRels->WriteChart(chartFile, false);
+    if (chartRid.size())
     {
-        oWriter.WriteString(L"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\"><mc:AlternateContent xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\"><mc:Choice xmlns:v=\"urn:schemas-microsoft-com:vml\" Requires=\"v\"><p:oleObj ");
-        std::wstring spid = L"_x0000_s" + std::to_wstring(m_pElement->m_lID + 1 /*count of ole*/);
-        std::wstring progId = pOleElement->m_progId;
+        oWriter.WriteString(L"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\"><p:oleObj ");
+        std::wstring spid = L"";
+        std::wstring progId = L"Excel.Sheet.12";
 
-        // mc - namespace problem
-        oWriter.WriteString(L"spid=\"" + spid + L"\" name=\"" + oleTypeName + L"\" r:id=\"" + oleRid + L"\" imgW=\"8230313\" imgH=\"5529551\" progId=\"" + progId + L"\">");
-        oWriter.WriteString(L"<p:embed followColorScheme=\"full\"/></p:oleObj></mc:Choice><mc:Fallback><p:oleObj ");
-        oWriter.WriteString(L"name=\"" + oleTypeName + L"\" r:id=\"" + oleRid + L"\" imgW=\"8230313\" imgH=\"5529551\" progId=\"" + progId + L"\">");
+        oWriter.WriteString(L"progId=\"" + progId + L"\" r:id=\"" + chartRid + L"\" spid=\"" + spid + L"\">");
         oWriter.WriteString(L"<p:embed/>");
         ConvertImage(true);
         oWriter.WriteString(m_oWriter.GetData());
-        oWriter.WriteString(L"</p:oleObj></mc:Fallback></mc:AlternateContent></a:graphicData>");
-
-        oWriter.WriteString(L"</a:graphic></p:graphicFrame>");
+        oWriter.WriteString(L"</p:oleObj></a:graphicData></a:graphic></p:graphicFrame>");
     } else
         return ConvertImage();
 
 
     return oWriter.GetData();
+}
+
+std::wstring CShapeWriter::ConvertOleFile2ChartXLSX(const std::wstring &oleFile)
+{
+    auto iterFileExt = oleFile.find_last_of(L".");
+    if (iterFileExt == std::wstring::npos)
+        return L"";
+    std::wstring xlsxPath = oleFile.substr(0, iterFileExt) + L".xlsx";
+    NExtractTools::InputParams params;
+    params.m_sFileFrom	= new std::wstring(oleFile);
+    params.m_sFileTo	= new std::wstring(xlsxPath);
+    auto status = NExtractTools::fromInputParams(params);
+
+    return xlsxPath;
 }
 HRESULT PPT_FORMAT::CShapeWriter::get_Type(LONG* lType)
 {

@@ -38,6 +38,7 @@
 #include "../../../ASCOfficePPTXFile/Editor/Drawing/Attributes.h"
 #include "../../../DesktopEditor/common/File.h"
 #include "../../../DesktopEditor/common/Directory.h"
+
 namespace PPT_FORMAT
 {
 	class CMediaManager
@@ -93,6 +94,10 @@ namespace PPT_FORMAT
         inline std::wstring GenerateOle(const std::wstring& strInput)
         {
             return GenerateMedia(strInput, L"oleObject", m_lIndexNextOle, L".bin", L"embeddings");
+        }
+        inline std::wstring GenerateChart(const std::wstring& strInput)
+        {
+            return GenerateMedia(strInput, L"oleObject", m_lIndexNextOle, L".xlsx", L"embeddings");
         }
         inline std::wstring GenerateImage(const std::wstring& strInput)
         {
@@ -394,9 +399,13 @@ namespace PPT_FORMAT
 		}
         inline std::wstring WriteOle(const std::wstring& strOLE, bool bExternal = true)
         {
-
             std::wstring strEmbeddings = m_pManager->GenerateOle(strOLE);
             return WriteHyperlinkMedia(strEmbeddings, bExternal, false, L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/ole");
+        }
+        std::wstring WriteChart(const std::wstring& strXLSX, bool bExternal = true)
+        {
+            std::wstring strEmbeddings = m_pManager->GenerateChart(strXLSX);
+            return WriteHyperlinkMedia(strEmbeddings, bExternal, false, L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/package");
         }
         inline std::wstring WriteHyperlinkVideo(const std::wstring& strImage, bool bExternal = true)
 		{
