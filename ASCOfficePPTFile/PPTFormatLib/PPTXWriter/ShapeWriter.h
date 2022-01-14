@@ -174,6 +174,7 @@ namespace PPT_FORMAT
 			std::wstring	ConvertGroup	();
 			std::wstring	ConvertShape	();
             std::wstring	ConvertImage	(bool noID = false);
+            std::wstring	ConvertChartImage();
             std::wstring    ConvertOle      ();
             std::wstring    ConvertOleFile2ChartXLSX(const std::wstring& oleFile);
             std::wstring	ConvertLine		(CPen		& pen);

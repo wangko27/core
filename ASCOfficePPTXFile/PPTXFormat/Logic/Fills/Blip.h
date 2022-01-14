@@ -99,7 +99,7 @@ namespace PPTX
 			std::vector<UniEffect> Effects;
 
 			nullable_limit<Limit::BlipCompression> cstate;
-			nullable<OOX::RId>	embed;
+            nullable<OOX::RId>embed;
 			nullable<OOX::RId>	link;
 			std::wstring		m_namespace;
 

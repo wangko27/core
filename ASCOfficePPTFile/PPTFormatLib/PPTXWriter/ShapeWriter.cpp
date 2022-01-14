@@ -34,14 +34,13 @@
 #include "../../../ASCOfficePPTXFile/Editor/Drawing/Theme.h"
 
 #include "../../../ASCOfficeXlsFile2/source/XlsXlsxConverter/ShapeType.h"
+#include "../../../ASCOfficeXlsFile2/source/XlsXlsxConverter/XlsConverter.h"
 #include "../../../Common/MS-LCID.h"
 
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/SpTreeElem.h"
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/Shape.h"
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/SpTree.h"
 #include "../../../ASCOfficePPTXFile/PPTXFormat/Logic/GraphicFrame.h"
-#include "../../../X2tConverter/src/ASCConverters.h"
-#include "../../../X2tConverter/src/cextracttools.h"
 
 #include <iostream>
 #include <ostream>
@@ -2359,6 +2358,47 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage(bool noID)
     return m_oWriter.GetData();
 }
 
+std::wstring CShapeWriter::ConvertChartImage()
+{
+    CImageElement* pImageElement = dynamic_cast<CImageElement*>(m_pElement.get());
+    if (!pImageElement) return L"";
+
+    PPTX::Logic::Pic pic;
+
+    pic.nvPicPr.cNvPr.id = 0 /*pImageElement->m_lID + 1*/;
+    pic.nvPicPr.cNvPr.name = pImageElement->m_sName;
+
+    auto strRid = m_pRels->WriteImage(pImageElement->m_strImageFileName);
+    auto pBlip = new PPTX::Logic::Blip;
+    auto pEmbided = new OOX::RId(strRid);
+    pBlip->embed.reset(pEmbided);
+    pic.blipFill.blip.reset(pBlip);
+    pic.blipFill.stretch.reset(new PPTX::Logic::Stretch);
+
+    auto pXfrm = new PPTX::Logic::Xfrm;
+    double multip1 = m_pElement->m_bAnchorEnabled ? 1587.5 : 1;
+
+    pXfrm->offX = round(m_pElement->m_rcAnchor.left * multip1);
+    pXfrm->offY = round(m_pElement->m_rcAnchor.top  * multip1);
+
+    pXfrm->extX = round(m_pElement->m_rcAnchor.GetWidth()  * multip1);
+    pXfrm->extY = round(m_pElement->m_rcAnchor.GetHeight() * multip1);
+    pic.spPr.m_namespace = L"p";
+    pic.spPr.xfrm.reset(pXfrm);
+
+    auto pPrst = new PPTX::Logic::PrstGeom;
+    pic.spPr.Geometry.m_geometry.reset(pPrst);
+
+    auto pLn = new PPTX::Logic::Ln;
+    pLn->m_name = L"a:ln";
+    pLn->w = 0;
+    pLn->Fill.Fill.reset(new PPTX::Logic::NoFill);
+    pic.spPr.ln.reset(pLn);
+
+
+    return pic.toXML();
+}
+
 std::wstring CShapeWriter::ConvertOle()
 {
     PPT_FORMAT::CStringWriter oWriter;
@@ -2372,6 +2412,7 @@ std::wstring CShapeWriter::ConvertOle()
     PPTX::Logic::NvGraphicFramePr oNvGFPr;
     oNvGFPr.cNvPr.id = m_pElement->m_lID;
     oNvGFPr.cNvPr.name = m_pElement->m_sName;
+    oNvGFPr.cNvPr.descr = L"";
 
     PPTX::Logic::Ext ext;
     ext.uri = L"{FF2B5EF4-FFF2-40B4-BE49-F238E27FC236}";
@@ -2402,7 +2443,8 @@ std::wstring CShapeWriter::ConvertOle()
 
         oWriter.WriteString(L"progId=\"" + progId + L"\" r:id=\"" + chartRid + L"\" spid=\"" + spid + L"\">");
         oWriter.WriteString(L"<p:embed/>");
-        ConvertImage(true);
+        oWriter.WriteString(ConvertChartImage());
+//        ConvertImage(true);
         oWriter.WriteString(m_oWriter.GetData());
         oWriter.WriteString(L"</p:oleObj></a:graphicData></a:graphic></p:graphicFrame>");
     } else
@@ -2418,10 +2460,17 @@ std::wstring CShapeWriter::ConvertOleFile2ChartXLSX(const std::wstring &oleFile)
     if (iterFileExt == std::wstring::npos)
         return L"";
     std::wstring xlsxPath = oleFile.substr(0, iterFileExt) + L".xlsx";
-    NExtractTools::InputParams params;
-    params.m_sFileFrom	= new std::wstring(oleFile);
-    params.m_sFileTo	= new std::wstring(xlsxPath);
-    auto status = NExtractTools::fromInputParams(params);
+    bool bMacros = false;
+    XlsConverter converter(oleFile, xlsxPath, L"", L"", NSFile::CFileBinary::GetTempPath(), 1, bMacros);
+
+      if (converter.isError())
+      {
+        return L"";
+      }
+
+      converter.convertDocument();
+
+      converter.write();
 
     return xlsxPath;
 }
