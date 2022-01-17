@@ -2271,7 +2271,7 @@ std::wstring PPT_FORMAT::CShapeWriter::ConvertImage(bool noID)
                 contrast = (0x10000 - pImageElement->m_lpictureContrast) * -1.5259;
             } else
             {
-//                contrast = (pImageElement->m_lpictureContrast - 0x10000) * 0.76294; // 0.76294 - not correct, * - not correct
+                //                contrast = (pImageElement->m_lpictureContrast - 0x10000) * 0.76294; // 0.76294 - not correct, * - not correct
                 contrast = 0;
             }
             m_oWriter.WriteString(L" contrast=\"" + std::to_wstring(contrast) + L"\"");
@@ -2434,6 +2434,9 @@ std::wstring CShapeWriter::ConvertOle()
     // <a:graphic> // chart
     std::wstring oleTypeName = pOleElement->m_sName;
     std::wstring chartFile = ConvertOleFile2ChartXLSX(pOleElement->m_strOleFileName);
+    if (chartFile.empty())
+        return ConvertImage();
+
     std::wstring chartRid = m_pRels->WriteChart(chartFile, false);
     if (chartRid.size())
     {
@@ -2444,7 +2447,7 @@ std::wstring CShapeWriter::ConvertOle()
         oWriter.WriteString(L"progId=\"" + progId + L"\" r:id=\"" + chartRid + L"\" spid=\"" + spid + L"\">");
         oWriter.WriteString(L"<p:embed/>");
         oWriter.WriteString(ConvertChartImage());
-//        ConvertImage(true);
+        //        ConvertImage(true);
         oWriter.WriteString(m_oWriter.GetData());
         oWriter.WriteString(L"</p:oleObj></a:graphicData></a:graphic></p:graphicFrame>");
     } else
@@ -2460,19 +2463,23 @@ std::wstring CShapeWriter::ConvertOleFile2ChartXLSX(const std::wstring &oleFile)
     if (iterFileExt == std::wstring::npos)
         return L"";
     std::wstring xlsxPath = oleFile.substr(0, iterFileExt) + L".xlsx";
+
     bool bMacros = false;
-    XlsConverter converter(oleFile, xlsxPath, L"", L"", NSFile::CFileBinary::GetTempPath(), 1, bMacros);
+    auto tempDir = NSDirectory::CreateDirectoryWithUniqueName(NSFile::CFileBinary::GetTempPath());
+    XlsConverter converter(oleFile, xlsxPath, L"", L"", tempDir, 1, bMacros);
 
-      if (converter.isError())
-      {
+    if (converter.isError())
+    {
         return L"";
-      }
+    }
 
-      converter.convertDocument();
+    converter.convertDocument();
 
-      converter.write();
+    converter.write();
 
-    return xlsxPath;
+    NSDirectory::DeleteDirectory(tempDir);
+
+    return NSDirectory::Exists(xlsxPath) ? xlsxPath : L"";
 }
 HRESULT PPT_FORMAT::CShapeWriter::get_Type(LONG* lType)
 {
