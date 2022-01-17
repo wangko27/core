@@ -2438,6 +2438,7 @@ std::wstring CShapeWriter::ConvertOle()
         return ConvertImage();
 
     std::wstring chartRid = m_pRels->WriteChart(chartFile, false);
+    NSFile::CFileBinary::Remove(chartFile);
     if (chartRid.size())
     {
         oWriter.WriteString(L"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\"><p:oleObj ");
@@ -2466,7 +2467,8 @@ std::wstring CShapeWriter::ConvertOleFile2ChartXLSX(const std::wstring &oleFile)
 
     bool bMacros = false;
     auto tempDir = NSDirectory::CreateDirectoryWithUniqueName(NSFile::CFileBinary::GetTempPath());
-    XlsConverter converter(oleFile, xlsxPath, L"", L"", tempDir, 1, bMacros);
+    auto xlsxDir = NSDirectory::CreateDirectoryWithUniqueName(tempDir);
+    XlsConverter converter(oleFile, xlsxDir, L"", L"", tempDir, 1, bMacros);
 
     if (converter.isError())
     {
@@ -2477,9 +2479,12 @@ std::wstring CShapeWriter::ConvertOleFile2ChartXLSX(const std::wstring &oleFile)
 
     converter.write();
 
+    COfficeUtils officeUtils(NULL);
+    officeUtils.CompressFileOrDirectory(xlsxDir, xlsxPath);
+
     NSDirectory::DeleteDirectory(tempDir);
 
-    return NSDirectory::Exists(xlsxPath) ? xlsxPath : L"";
+    return NSFile::CFileBinary::Exists(xlsxPath) ? xlsxPath : L"";
 }
 HRESULT PPT_FORMAT::CShapeWriter::get_Type(LONG* lType)
 {

@@ -848,7 +848,10 @@ class COleElement : public CImageElement
 {
 public:
     COleElement(){}
-    ~COleElement(){}
+    ~COleElement()
+    {
+        NSFile::CFileBinary::Remove(m_strOleFileName);
+    }
 
 public:
     std::wstring m_strOleFileName;
