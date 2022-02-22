@@ -758,6 +758,8 @@ namespace PdfReader
             Ref oEmbRef;
             bool bFontSubstitution = false;
             std::wstring wsFontBaseName = NSStrings::GetString(pFont->getName());
+            if (wsFontBaseName.empty())
+                wsFontBaseName = L"Helvetica";
             const unsigned char* pData14 = NULL;
             unsigned int nSize14 = 0;
         #ifdef FONTS_USE_ONLY_MEMORY_STREAMS
@@ -1095,6 +1097,8 @@ namespace PdfReader
                 oFile.WriteFile((BYTE*)pData14, nSize14);
                 oFile.CloseFile();
                 wsFileName = wsTempFileName;
+
+                eFontType = fontTrueType;
             }
         #else
             else if ([&oMemoryFontStream, wsFontBaseName]()
@@ -1536,8 +1540,19 @@ namespace PdfReader
                     }
                     else
                     {
-                        pCodeToGID = NULL;
-                        nLen = 0;
+						pCodeToGID = NULL;
+						nLen       = 0;
+
+						if (m_pFontManager->LoadFontFromFile(wsFileName, 0, 10, 72, 72))
+						{
+							INT* pCodes = NULL;
+							nLen = 256;
+							pCodeToGID = (int*)MemUtilsMallocArray(nLen, sizeof(int));
+							for (int nCode = 0; nCode < nLen; ++nCode)
+							{
+								pCodeToGID[nCode] = m_pFontManager->GetGIDByUnicode(nCode);
+							}
+						}
                     }
                     break;
                 }
@@ -3855,6 +3870,7 @@ namespace PdfReader
         Aggplus::CImage oImage;
         oImage.Create(pBufferPtr, nWidth, nHeight, -4 * nWidth);
 
+
         int nComponentsCount = pColorMap->getNumPixelComps();
 
         // Пишем данные в pBufferPtr
@@ -3897,7 +3913,7 @@ namespace PdfReader
             }
         }
 
-        delete pImageStream;
+		delete pImageStream;
 
         double arrMatrix[6];
         double *pCTM = pGState->getCTM();
@@ -3916,7 +3932,7 @@ namespace PdfReader
         DoTransform(arrMatrix, &dShiftX, &dShiftY, true);
         m_pRenderer->DrawImage(&oImage, 0 + dShiftX, 0 + dShiftY, PDFCoordsToMM(1), PDFCoordsToMM(1));
     }
-    void RendererOutputDev::drawMaskedImage(GfxState *pGState, Object *pRef, Stream *pStream, int nWidth, int nHeight, GfxImageColorMap *pColorMap, Stream *pMaskStream, int nMaskWidth, int nMaskHeight, GBool bMaskInvert, GBool interpolate)
+	void RendererOutputDev::drawMaskedImage(GfxState *pGState, Object *pRef, Stream *pStream, int nWidth, int nHeight, GfxImageColorMap *pColorMap, Object* pStreamRef, Stream *pMaskStream, int nMaskWidth, int nMaskHeight, GBool bMaskInvert, GBool interpolate)
     {
         if (m_bDrawOnlyText)
             return;
@@ -4086,7 +4102,7 @@ namespace PdfReader
         }
         delete pImageStream;
 
-        if (nWidth != nMaskWidth || nHeight != nMaskHeight)
+		if (nWidth != nMaskWidth || nHeight != nMaskHeight)
         {
             // TO DO: Здесь сделан элементарный вариант масштабирования маски.
             //        Надо улучшить алгоритм.
@@ -4117,8 +4133,8 @@ namespace PdfReader
 
                     int nMaxW = (std::max)(nWidth, nMaskWidth);
                     int nMaxH = (std::max)(nHeight, nMaskHeight);
-                    if (nWidth != nMaxW || nHeight != nMaxH)
-                    {
+					if (nWidth != nMaxW || nHeight != nMaxH)
+					{
                         unsigned char* pImageBuffer = pBufferPtr;
                         int nNewBufferSize = 4 * nMaxW * nMaxH;
                         pBufferPtr = new unsigned char[nNewBufferSize];
@@ -4144,7 +4160,7 @@ namespace PdfReader
                                 int nIndex = 4 * (nY * nMaxW + nX);
 
                                 int nNearestAlphaMatch =  (((int)((nMaxH - 1 - nY) * dAlphaScaleHeight) * nMaskWidth) + ((int)(nX * dAlphaScaleWidth)));
-                                int nNearestImageMatch =  4 * (((int)((nMaxH - 1 - nY) * dImageScaleHeight) * nWidth) + ((int)(nX * dImageScaleWidth)));
+								int nNearestImageMatch =  4 * (((int)(nY * dImageScaleHeight) * nWidth) + ((int)(nX * dImageScaleWidth)));
 
                                 pBufferPtr[nIndex + 0] = pImageBuffer[nNearestImageMatch + 0];
                                 pBufferPtr[nIndex + 1] = pImageBuffer[nNearestImageMatch + 1];
@@ -4372,12 +4388,14 @@ namespace PdfReader
     }
     void RendererOutputDev::updateClipAttack(GfxState *pGState)
     {
+		if (!m_bClipChanged)
+			return;
 
-        //return;
-        if (!m_bClipChanged) return;
-        m_pRenderer->BeginCommand(c_nResetClipType);
+		m_pRenderer->BeginCommand(c_nResetClipType);
         m_pRenderer->EndCommand(c_nResetClipType);
-        if (m_sClip.empty()) return;
+
+		if (m_sClip.empty())
+			return;
 
         for (GfxClip &curClip : m_sClip) {
             for (int nIndex = 0; nIndex < curClip.GetPathNum(); nIndex++)
