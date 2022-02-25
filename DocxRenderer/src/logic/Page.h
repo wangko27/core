@@ -544,10 +544,10 @@ namespace NSDocxRenderer
 			m_pCurrentLine->AddCont(pCont, m_oManager.m_oFont.m_dBaselineOffset);
 		}
 
-		bool IsRect(const std::wstring& str, const std::wstring& sub)
+		bool IsRect(const CShape* pShape)
 		{
-			if (0 == sub.length())
-				return false;
+			const std::wstring sub = L",";
+			const std::wstring str = pShape->m_strPath;
 
 			size_t count{};
 			for (size_t offset = str.find(sub); offset != std::string::npos;
@@ -636,25 +636,41 @@ namespace NSDocxRenderer
 
         bool IsDashLine(const CShape* pCurShape, const CShape* pDashShape)
         {
-            bool IsEqualWidth = abs(pCurShape->m_dWidth - pDashShape->m_dWidth) < 0.01;
-            bool IsEqualTop = abs(pCurShape->m_dTop - pDashShape->m_dTop) < 0.01;
+            bool IsEqualWidth  = abs(pCurShape->m_dWidth  - pDashShape->m_dWidth ) < 0.01;
+            bool IsEqualTop    = abs(pCurShape->m_dTop    - pDashShape->m_dTop   ) < 0.01;
             bool IsEqualHeight = abs(pCurShape->m_dHeight - pDashShape->m_dHeight) < 0.01;
-            bool IsMoreLeft = pDashShape->m_dLeft > pCurShape->m_dLeft;
-            bool bCheckHeight = pCurShape->m_dHeight < 3.0 && pDashShape->m_dHeight < 3.0;
+            bool IsMoreLeft    = pDashShape->m_dLeft  > pCurShape->m_dLeft;
+            bool bCheckHeight  = pCurShape->m_dHeight < 3.0 && pDashShape->m_dHeight < 3.0;
+            bool bCheckWidth   = pCurShape->m_dWidth  < 3.0 && pDashShape->m_dWidth  < 3.0;
 
-            return IsEqualHeight && IsEqualTop && IsEqualWidth && IsMoreLeft && bCheckHeight;
+            bool bCheckBetween{};
+            if (pDashShape->m_dLeft > pCurShape->m_dLeft)
+            {
+                bCheckBetween = (pDashShape->m_dLeft - pCurShape->m_dLeft - pCurShape->m_dWidth) <= pCurShape->m_dWidth*5;
+            }
+            else
+            {
+                bCheckBetween = (pCurShape->m_dLeft - pDashShape->m_dLeft - pDashShape->m_dWidth) <= pCurShape->m_dWidth*5;
+            }
+
+            return  IsEqualHeight && IsEqualTop   && IsEqualWidth && 
+                    IsMoreLeft    && bCheckHeight && bCheckWidth  && 
+                    bCheckBetween;
         }
 
-        bool IsSearchDash(int lCurIdx, CShape* pCurShape)
+        bool IsSearchDash(int nCurIdx, CShape* pCurShape)
         {
+            if (pCurShape->m_dHeight > 3.0 || pCurShape->m_dWidth > 3.0)
+                return false;
+
             double dCalculatedWidth = pCurShape->m_dWidth;
             size_t nCount = m_arGraphicItems.size();
-            for (size_t i = lCurIdx+1; i < nCount; ++i)
+            for (size_t i = nCurIdx+1; i < nCount; ++i)
             {
                 if (m_arGraphicItems[i]->m_eType == NSDocxRenderer::CBaseItem::etShape)
                 {
                     CShape* pShape = dynamic_cast <CShape *> (m_arGraphicItems[i]);
-                    if (IsDashLine(pCurShape, pShape))
+                    if (IsRect(pShape) && IsDashLine(pCurShape, pShape))
                     {
                         dCalculatedWidth = pShape->m_dLeft + pShape->m_dWidth - pCurShape->m_dLeft;
                         m_arGraphicItems.erase(m_arGraphicItems.cbegin() + i);
@@ -672,9 +688,6 @@ namespace NSDocxRenderer
                     pCurShape->m_TypeLine = NSStructures::LineProperties::DASH;
                 else if (pCurShape->m_dWidth < 3)
                     pCurShape->m_TypeLine = NSStructures::LineProperties::DASHLONG;
-                //TODO: убрать
-                else
-                    pCurShape->m_TypeLine = NSStructures::LineProperties::SINGLE;
 
                 pCurShape->m_dWidth = dCalculatedWidth;
                 return true;
@@ -684,12 +697,23 @@ namespace NSDocxRenderer
 
         bool IsDotLine(const CShape* pCurShape, const CShape* pDotShape)
         {
-            bool IsEqualTop = abs(pCurShape->m_dTop - pDotShape->m_dTop) < 0.01;
-            bool IsSuitableDiff = abs(pDotShape->m_dLeft - pCurShape->m_dLeft - pCurShape->m_dWidth) < 0.5;
-            bool IsSuitableWidth = pDotShape->m_dWidth;
-            bool bCheckHeight = pCurShape->m_dHeight < 3.0 && pDotShape->m_dHeight < 3.0;
+            bool IsEqualTop      = abs(pCurShape->m_dTop  - pDotShape->m_dTop) < 0.01;
+            bool IsSuitableDiff  = abs(pDotShape->m_dLeft - pCurShape->m_dLeft - pCurShape->m_dWidth) < 0.5;
+            bool IsSuitableWidth = pCurShape->m_dWidth  < 3.0 ;
+            bool bCheckHeight    = pCurShape->m_dHeight < 3.0 && pDotShape->m_dHeight < 3.0;
 
-            return IsEqualTop && IsSuitableDiff && IsSuitableWidth && bCheckHeight;
+            bool bCheckBetween{};
+            if (pDotShape->m_dLeft > pCurShape->m_dLeft)
+            {
+                bCheckBetween = (pDotShape->m_dLeft - pCurShape->m_dLeft - pCurShape->m_dWidth) <= pCurShape->m_dWidth*5;
+            }
+            else
+            {
+                bCheckBetween = (pCurShape->m_dLeft - pDotShape->m_dLeft - pDotShape->m_dWidth) <= pCurShape->m_dWidth*5;
+            }
+
+            return IsEqualTop   && IsSuitableDiff && IsSuitableWidth && 
+                   bCheckHeight && bCheckBetween;
         }
 
         double SearchWidthDotted(int lCurIdx, const CShape* pCurShape)
@@ -703,7 +727,7 @@ namespace NSDocxRenderer
                 if (m_arGraphicItems[i]->m_eType == NSDocxRenderer::CBaseItem::etShape)
                 {
                     CShape* pShape = dynamic_cast <CShape *> (m_arGraphicItems[i]);
-                    if (IsDotLine(pCurShape, pShape))
+                    if (IsRect(pShape) && IsDotLine(pCurShape, pShape))
                         return pShape->m_dWidth;
                 }
             }
@@ -712,6 +736,7 @@ namespace NSDocxRenderer
 
         void SearchDotted(int lCurIdx, CShape* pCurShape, double SecondWidth)
         {
+            //TODO: исправить пунктир (bCheckBetween сравнить с другим значением)
             if (pCurShape->m_dHeight > 3.0)
             {
                 pCurShape->m_TypeLine = NSStructures::LineProperties::SINGLE;
@@ -726,6 +751,19 @@ namespace NSDocxRenderer
                 if (m_arGraphicItems[i]->m_eType == NSDocxRenderer::CBaseItem::etShape)
                 {
                     CShape* pShape = dynamic_cast <CShape *> (m_arGraphicItems[i]);
+
+                    bool bCheckBetween{};
+                    if (pShape->m_dLeft > pCurShape->m_dLeft)
+                    {
+                        bCheckBetween = (pShape->m_dLeft - pCurShape->m_dLeft - pCurShape->m_dWidth) <= pCurShape->m_dWidth*5;
+                    }
+                    else
+                    {
+                        bCheckBetween = (pCurShape->m_dLeft - pShape->m_dLeft - pShape->m_dWidth) <= pCurShape->m_dWidth*5;
+                    }
+                    if (!bCheckBetween)
+                        continue;
+
                     if (abs(pShape->m_dTop - pCurShape->m_dTop) < 0.01 && pShape->m_dHeight < 3.0)
                     {
                         if (pShape->m_dWidth < 0.5)
@@ -841,6 +879,7 @@ namespace NSDocxRenderer
         {
             double dTopTextLine    = pTextLine->m_dBaselinePos - pTextLine->m_dHeight;
             double dBottomTextLine = pTextLine->m_dBaselinePos;
+            double dWidthTextLine  = pTextLine->GetCalculatedWidth();
 
             bool bCheckTop    = dTopTextLine < pShape->m_dTop;
             bool bCheckHeight = pShape->m_dHeight < 3.0;
@@ -848,13 +887,26 @@ namespace NSDocxRenderer
             bool bColorEquals = pTextLine->IsMatchColor(pShape->m_oBrush.Color1) ||
                                 pTextLine->IsMatchColor(pShape->m_oPen.Color);
 
-            return bCheckTop && bCheckBottom &&
-                   bColorEquals && bCheckHeight;
+            bool bCheckWidth = dWidthTextLine >= pShape->m_dWidth;
+            bool bCheckCoord{};
+
+            if (pTextLine->m_dX <= pShape->m_dLeft)
+            {
+                bCheckCoord = ( pTextLine->m_dX + dWidthTextLine) >= ( pShape->m_dLeft + pShape->m_dWidth);
+            }
+            else
+            {
+                bCheckCoord = abs( pTextLine->m_dX - pShape->m_dLeft) < 3.0;
+            }
+
+            return bCheckTop    && bCheckBottom && bColorEquals &&
+                   bCheckHeight && bCheckWidth  && bCheckCoord;
         }
 
         bool IsUnderline(CShape* pShape, CTextLine* pTextLine)
         {
             double dBottomTextLine = pTextLine->m_dBaselinePos;
+            double dWidthTextLine  = pTextLine->GetCalculatedWidth();
 
             bool bCheckTop    = abs(pShape->m_dTop - dBottomTextLine) < 2;
             bool bCheckHeight = pShape->m_dHeight < 3.0;
@@ -862,8 +914,20 @@ namespace NSDocxRenderer
             bool bColorEquals = pTextLine->IsMatchColor(pShape->m_oBrush.Color1) ||
                                 pTextLine->IsMatchColor(pShape->m_oPen.Color);
 
-            return bCheckTop    && bCheckHeight &&
-                   bCheckBottom && bColorEquals;
+            bool bCheckWidth = dWidthTextLine >= pShape->m_dWidth;
+            bool bCheckCoord{};
+
+            if (pTextLine->m_dX <= pShape->m_dLeft)
+            {
+                bCheckCoord = ( pTextLine->m_dX + dWidthTextLine) >= ( pShape->m_dLeft + pShape->m_dWidth);
+            }
+            else
+            {
+                bCheckCoord = abs( pTextLine->m_dX - pShape->m_dLeft) < 3.0;
+            }
+
+            return bCheckTop    && bCheckHeight && bCheckBottom &&
+                   bColorEquals && bCheckWidth  && bCheckCoord;
         }
 
         bool IsBackground(CShape* pShape, CTextLine* pTextLine)
@@ -872,14 +936,15 @@ namespace NSDocxRenderer
             double dLeftTextLine   = pTextLine->m_dX;
             double dRightTextLine  = pTextLine->m_arConts.back()->m_dX + pTextLine->m_arConts.back()->m_dWidth;
 
-            bool bCheckTop    = dBottomTextLine > pShape->m_dTop;
-            bool bCheckBottom = dBottomTextLine < pShape->m_dHeight + pShape->m_dTop;
-            bool bCheckLeft   = dLeftTextLine   < pShape->m_dLeft + pShape->m_dWidth;
-            bool bCheckRight  = dRightTextLine  > pShape->m_dLeft;
-            bool bCheckHeight = pShape->m_dHeight/pTextLine->m_dHeight < 2;
+            bool bCheckTop    = dBottomTextLine  > pShape->m_dTop;
+            bool bCheckBottom = dBottomTextLine  < pShape->m_dHeight + pShape->m_dTop;
+            bool bCheckLeft   = dLeftTextLine    < pShape->m_dLeft   + pShape->m_dWidth;
+            bool bCheckRight  = dRightTextLine   > pShape->m_dLeft;
+            bool bCheckWidth  = pShape->m_dWidth > 3.0;
+            bool bCheckHeight = pShape->m_dHeight/pTextLine->m_dHeight < 2.0;
 
-            return bCheckTop  && bCheckBottom &&
-                   bCheckLeft && bCheckRight  && bCheckHeight;
+            return bCheckTop   && bCheckBottom && bCheckLeft &&
+                   bCheckRight && bCheckHeight && bCheckWidth;
         }
 
         bool IsHighlightColor(const int &key)
@@ -942,7 +1007,7 @@ namespace NSDocxRenderer
 				if (m_arGraphicItems[i]->m_eType == NSDocxRenderer::CBaseItem::etShape)
 				{
 					CShape* pShape = dynamic_cast <CShape *> (m_arGraphicItems[i]);
-					if (IsRect(pShape->m_strPath, L",") || IsWaveUnderline(pShape))
+					if (IsRect(pShape) || IsWaveUnderline(pShape))
 					{
 						size_t nCountTextLine = m_arTextLine.size();
 						for (size_t j = 0; j < nCountTextLine; ++j)

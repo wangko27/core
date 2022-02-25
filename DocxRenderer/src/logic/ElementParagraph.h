@@ -837,6 +837,17 @@ namespace NSDocxRenderer
             }
         }
 
+        double GetCalculatedWidth()
+        {
+            double dWidth = m_dWidth;
+            size_t countConts = m_arConts.size();
+            for (size_t i = 0; i < countConts; ++i)
+            {
+                dWidth += m_arConts[i]->m_dWidth + m_arConts[i]->m_dSpaceWidthMM;
+            }
+            return dWidth;
+        }
+
         double CalculatingLineHeight(double dBeforeSpacing)
         {
             double dTempHeight = 1;
