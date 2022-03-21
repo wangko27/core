@@ -18,13 +18,17 @@ namespace FileView
                 bool LoadFile(const QString& qsFilePath);
         private:
                 void InitLayout();
+                void Clear();
 
                 bool LoadSourceFile(const QString& qsFilePath);
                 bool LoadResultingFile(const QString& qsFilePath);
 
                 QString         m_qsFilePath;
-                QGraphicsView   m_oSourceFileView;
-                QGraphicsView   m_oResultingFileView;
+                QGraphicsScene  m_oSourceFileScene;
+                QGraphicsScene  m_oResultingFileScene;
+
+//                QGraphicsView   m_oSourceFileView;
+//                QGraphicsView   m_oResultingFileView;
         };
 
 }

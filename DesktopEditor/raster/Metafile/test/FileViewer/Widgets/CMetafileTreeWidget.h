@@ -7,9 +7,9 @@
 #include <QTextEdit>
 #include <QPushButton>
 
-#include "CTextEditDelegate.h"
-#include "CMetafileTreeView.h"
-#include "MainWindow.h"
+#include "Common/CTextEditDelegate.h"
+#include "Common/CMetafileTreeView.h"
+#include "../MainWindow.h"
 
 class CMetafileTreeWidget : public QWidget
 {

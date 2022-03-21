@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QMouseEvent>
-#include <CTextEditDelegate.h>
+#include "CTextEditDelegate.h"
 
 #include "CEditItemWidget.h"
 
@@ -33,13 +33,10 @@ void CMetafileTreeView::SetMetafile(const std::wstring &wsXmlFilePath)
 
         XmlUtils::CXmlNode oXmlRootNode;
 
-        if (!oXmlRootNode.FromXmlFile(wsXmlFilePath) ||
-            (oXmlRootNode.GetName() != L"EMF" &&
-             oXmlRootNode.GetName() != L"WMF"))
+        if (!oXmlRootNode.FromXmlFile(wsXmlFilePath))
         {
                 oXmlFile->close();
                 delete oXmlFile;
-                return;
         }
 
         setHeaderHidden(true);

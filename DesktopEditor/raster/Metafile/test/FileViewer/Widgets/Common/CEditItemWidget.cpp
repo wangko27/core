@@ -89,12 +89,12 @@ void CEditItemWidget::slotSaveButtonCliked()
                         oStandardItem->setText(QString("<%1>%2</%1>").arg(qsName).arg(qsValue));
         }
 
-        if (!m_oBind.empty() && NULL != m_pMainWindow)
-        {
-                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
-                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
-                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
-        }
+//        if (!m_oBind.empty() && NULL != m_pMainWindow)
+//        {
+//                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
+//                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
+//                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
+//        }
 
         slotCancelButtonClicked();
 }
@@ -197,12 +197,12 @@ void CEditItemWidget::DeleteItem(QStandardItem *pStandardItem)
 
         pParent->removeRow(pStandardItem->index().row());
 
-        if (NULL != m_pMainWindow)
-        {
-                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
-                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
-                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
-        }
+//        if (NULL != m_pMainWindow)
+//        {
+//                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
+//                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
+//                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
+//        }
 
         slotCancelButtonClicked();
 }

@@ -45,6 +45,8 @@ namespace FileView
                 if (qsFilePath.isEmpty())
                         return false;
 
+                Clear();
+
                 bool bLoadSourceFile = LoadSourceFile(qsFilePath);
                 bool bResultingFile  = LoadResultingFile(qsFilePath);
 
@@ -57,10 +59,22 @@ namespace FileView
 
                 setLayout(pMainLayout);
 
-                pMainLayout->addWidget(&m_oSourceFileView);
+                QGraphicsView *pSourceFileView = new QGraphicsView;
+                pSourceFileView->setScene(&m_oSourceFileScene);
+
+                QGraphicsView *pResultingFileView = new QGraphicsView;
+                pResultingFileView->setScene(&m_oResultingFileScene);
+
+                pMainLayout->addWidget(pSourceFileView);
                 pMainLayout->setStretch(0, 1);
-                pMainLayout->addWidget(&m_oResultingFileView);
+                pMainLayout->addWidget(pResultingFileView);
                 pMainLayout->setStretch(1, 1);
+        }
+
+        void CFileViewWidget::Clear()
+        {
+                m_oSourceFileScene.clear();
+                m_oResultingFileScene.clear();
         }
 
         bool CFileViewWidget::LoadSourceFile(const QString &qsFilePath)
@@ -69,11 +83,7 @@ namespace FileView
 
                 if (pGraphicsSvgItem->renderer()->isValid()) //Это Svg
                 {
-                        QGraphicsScene *pGraphicsScene = new QGraphicsScene;
-
-                        pGraphicsScene->addItem(pGraphicsSvgItem);
-
-                        m_oSourceFileView.setScene(pGraphicsScene);
+                        m_oSourceFileScene.addItem(pGraphicsSvgItem);
 
                         return true;
                 }
@@ -99,11 +109,7 @@ namespace FileView
                 {
                         QPixmap oPixmap = qt_pixmapFromWinHBITMAP(handleToSliceRet);
 
-                        QGraphicsScene *pScene = new QGraphicsScene;
-
-                        pScene->addPixmap(oPixmap);
-
-                        m_oSourceFileView.setScene(pScene);
+                        m_oSourceFileScene.addPixmap(oPixmap);
 
                         return true;
                 }
@@ -134,9 +140,8 @@ namespace FileView
                 pFonts->Release();
 
                 QImage oImage(QString::fromStdWString(wsPathToRasterFile));
-                QGraphicsScene *pGraphicsScene = new QGraphicsScene;
-                pGraphicsScene->addPixmap(QPixmap::fromImage(QImage(oImage)));
-                m_oResultingFileView.setScene(pGraphicsScene);
+
+                m_oResultingFileScene.addPixmap(QPixmap::fromImage(QImage(oImage)));
 
                 return false;
         }

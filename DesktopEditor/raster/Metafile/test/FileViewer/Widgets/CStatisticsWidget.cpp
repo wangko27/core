@@ -1,5 +1,5 @@
 #include "CStatisticsWidget.h"
-#include "CMapModel.h"
+#include "Common/CMapModel.h"
 
 #include <QResizeEvent>
 #include <QStandardItemModel>

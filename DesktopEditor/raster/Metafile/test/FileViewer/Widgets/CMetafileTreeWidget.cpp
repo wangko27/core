@@ -4,7 +4,7 @@
 #include <QBoxLayout>
 
 #include "CRecordCreator.h"
-#include "Common/Common.h"
+#include "RecordWidgets/Common.h"
 
 CMetafileTreeWidget::CMetafileTreeWidget(QWidget *parent)
         : QWidget(parent),
@@ -338,8 +338,8 @@ void CMetafileTreeWidget::InsertRecord(QStandardItem *pParentItem, unsigned int 
         if (NULL != pItem)
         {
                 pParentItem->insertRow(unRow + ((bAfterRecord) ? 0 : 1), pItem);
-                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
-                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
-                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
+//                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
+//                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
+//                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
         }
 }

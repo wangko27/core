@@ -5,7 +5,7 @@
 #include <QStandardItem>
 
 #include "MainWindow.h"
-#include "Common/CSharedWidget.h"
+#include "RecordWidgets/CSharedWidget.h"
 
 namespace Ui {
         class CRecordCreator;
