@@ -22,9 +22,9 @@ Q_GUI_EXPORT QPixmap qt_pixmapFromWinHBITMAP(HBITMAP bitmap, int hbitmapFormat=0
 #include "../../../../raster/BgraFrame.h"
 #include "../../../../common/Directory.h"
 
-namespace FileView
+namespace Widgets
 {
-        CFileViewWidget::CFileViewWidget(QWidget *parent) : QWidget(parent)
+        CFileViewWidget::CFileViewWidget(QWidget *parent) : QWidget(parent), m_enFileType(FileTypeUnknown)
         {
                 InitLayout();
         }
@@ -37,7 +37,7 @@ namespace FileView
 
         CFileViewWidget::~CFileViewWidget()
         {
-                NSFile::CFileBinary::Remove(L"Temp.png");
+                Clear();
         };
 
         bool CFileViewWidget::LoadFile(const QString &qsFilePath)
@@ -51,6 +51,16 @@ namespace FileView
                 bool bResultingFile  = LoadResultingFile(qsFilePath);
 
                 return bLoadSourceFile * bResultingFile;
+        }
+
+        QString CFileViewWidget::GetXmlFilePath() const
+        {
+                return m_qsXmlFilePath;
+        }
+
+        FileType CFileViewWidget::GetFileType() const
+        {
+                return m_enFileType;
         }
 
         void CFileViewWidget::InitLayout()
@@ -73,18 +83,25 @@ namespace FileView
 
         void CFileViewWidget::Clear()
         {
+                NSFile::CFileBinary::Remove(m_qsRasterFilePath.toStdWString());
+                NSFile::CFileBinary::Remove(m_qsXmlFilePath.toStdWString());
+
                 m_oSourceFileScene.clear();
                 m_oResultingFileScene.clear();
+
+                m_qsXmlFilePath.clear();
         }
 
         bool CFileViewWidget::LoadSourceFile(const QString &qsFilePath)
         {
+                m_enFileType = FileTypeUnknown;
+
                 QGraphicsSvgItem *pGraphicsSvgItem = new QGraphicsSvgItem(qsFilePath);
 
                 if (pGraphicsSvgItem->renderer()->isValid()) //Это Svg
                 {
+                        m_enFileType = FileTypeSvg;
                         m_oSourceFileScene.addItem(pGraphicsSvgItem);
-
                         return true;
                 }
 
@@ -107,8 +124,9 @@ namespace FileView
                 }
                 else // Это Emf/Wmf
                 {
-                        QPixmap oPixmap = qt_pixmapFromWinHBITMAP(handleToSliceRet);
+                        m_enFileType = FileTypeMetafile;
 
+                        QPixmap oPixmap = qt_pixmapFromWinHBITMAP(handleToSliceRet);
                         m_oSourceFileScene.addPixmap(oPixmap);
 
                         return true;
@@ -119,6 +137,9 @@ namespace FileView
 
         bool CFileViewWidget::LoadResultingFile(const QString &qsFilePath)
         {
+                if (FileTypeUnknown == m_enFileType)
+                        return false;
+
                 CApplicationFontsWorker oWorker;
                 oWorker.m_sDirectory = NSFile::GetProcessDirectory() + L"/fonts_cache";
                 oWorker.m_bIsNeedThumbnails = false;
@@ -132,17 +153,25 @@ namespace FileView
                 if (!pMetafile->LoadFromFile(qsFilePath.toStdWString().c_str()))
                         return false;
 
-                std::wstring wsPathToRasterFile = NSFile::GetProcessDirectory() + L"/Temp.png";
+                m_qsRasterFilePath    = QString::fromStdWString(NSFile::GetProcessDirectory() + L"/Temp.png");
 
-                pMetafile->ConvertToRaster(wsPathToRasterFile.c_str(), 4, 1000);
+                if (FileTypeSvg == m_enFileType)
+                {
+                        pMetafile->ConvertToRaster(m_qsRasterFilePath.toStdWString().c_str(), 4, 1000);
+                }
+                else
+                {
+                        m_qsXmlFilePath = QString::fromStdWString(NSFile::GetProcessDirectory() + L"/Temp.xml");
+                        pMetafile->ConvertToXmlAndRaster(m_qsXmlFilePath.toStdWString().c_str(), m_qsRasterFilePath.toStdWString().c_str(), 4, 1000);
+                }
 
                 pMetafile->Release();
                 pFonts->Release();
 
-                QImage oImage(QString::fromStdWString(wsPathToRasterFile));
+                QImage oImage(m_qsRasterFilePath);
 
                 m_oResultingFileScene.addPixmap(QPixmap::fromImage(QImage(oImage)));
 
-                return false;
+                return true;
         }
 }

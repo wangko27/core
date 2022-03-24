@@ -61,21 +61,21 @@ void CEditItemWidget::SetMainWindow(MainWindow *pMainWidget)
                 pMainWidget->setEnabled(false);
 }
 
-void CEditItemWidget::SetItem(QStandardItem *pStandardItem)
+void CEditItemWidget::SetItem(CCustomItem *pCustomItem)
 {
-        m_pStandardItem = pStandardItem;
+        m_pStandardItem = pCustomItem;
         ParsingItem();
 }
 
 void CEditItemWidget::slotSaveButtonCliked()
 {
-        for (QStandardItem* oStandardItem : m_oBind)
+        for (CCustomItem* pCustomItem : m_oBind)
         {
-                const QTextEdit* pTextEdit = m_oBind.key(oStandardItem);
+                const QTextEdit* pTextEdit = m_oBind.key(pCustomItem);
 
                 unsigned int unFirstQuotationMark, unLastSlash;
 
-                const QString qsStandardItemValue = oStandardItem->data(0).toString();
+                const QString qsStandardItemValue = pCustomItem->data(0).toString();
 
                 unFirstQuotationMark = qsStandardItemValue.indexOf('>');
                 unLastSlash = qsStandardItemValue.lastIndexOf('/');
@@ -83,10 +83,10 @@ void CEditItemWidget::slotSaveButtonCliked()
                 const QString qsName = qsStandardItemValue.mid(1, ((unLastSlash > unFirstQuotationMark) ? (unFirstQuotationMark) : (unLastSlash)) - 1);
                 const QString qsValue = pTextEdit->toPlainText();
 
-                if (qsValue.size() == 0)
-                        oStandardItem->setText(QString("<%1/>").arg(qsName));
+                if (qsValue.isEmpty())
+                        pCustomItem->setText(QString("<%1/>").arg(qsName));
                 else
-                        oStandardItem->setText(QString("<%1>%2</%1>").arg(qsName).arg(qsValue));
+                        pCustomItem->setText(QString("<%1>%2</%1>").arg(qsName).arg(qsValue));
         }
 
 //        if (!m_oBind.empty() && NULL != m_pMainWindow)
@@ -117,7 +117,7 @@ void CEditItemWidget::ParsingItem()
         if (NULL == m_pStandardItem)
                 return;
 
-        if (true == m_pStandardItem->data(3))
+        if (CustomItemTypeRootRecord != m_pStandardItem->GetType())
         {
                 QPushButton *pDeleteButton = new QPushButton("Delete");
 
@@ -129,28 +129,21 @@ void CEditItemWidget::ParsingItem()
         ParsingAttachments(m_pStandardItem);
 }
 
-void CEditItemWidget::ParsingAttachments(QStandardItem *pStandardItem, unsigned int unLevel)
+void CEditItemWidget::ParsingAttachments(CCustomItem *pCustomItem, unsigned int unLevel)
 {
-        const unsigned int unCountRow           = pStandardItem->rowCount();
-        const QString qsStandardItemValue       = pStandardItem->data(0).toString();
-        unsigned int unFirstQuotationMark, unLastSlash;
+        if (NULL == pCustomItem)
+                return;
 
-        unFirstQuotationMark = qsStandardItemValue.indexOf('>');
-        unLastSlash = qsStandardItemValue.lastIndexOf('/');
+        const unsigned int unCountRow           = pCustomItem->rowCount();
 
-        const QString qsName = qsStandardItemValue.mid(1, ((unLastSlash > unFirstQuotationMark) ? (unFirstQuotationMark) : (unLastSlash)) - 1);
+
 
         if (unCountRow == 0)
         {
                 QHBoxLayout *pLayout = new QHBoxLayout;
 
-                QString qsValue;
-
-                if (unLastSlash > unFirstQuotationMark)
-                      qsValue = qsStandardItemValue.mid(unFirstQuotationMark + 1, unLastSlash - unFirstQuotationMark - 2);
-
-                QLabel *pNameLabel = new QLabel(qsName);
-                QTextEdit *pValueEdit = new QTextEdit(qsValue);
+                QLabel *pNameLabel = new QLabel(pCustomItem->GetName());
+                QTextEdit *pValueEdit = new QTextEdit(pCustomItem->GetValue());
 
                 pNameLabel->setStyleSheet(QString("QLabel { margin-left: %1 }").arg((unLevel - 1) * 20));
 
@@ -160,7 +153,7 @@ void CEditItemWidget::ParsingAttachments(QStandardItem *pStandardItem, unsigned 
                 pLayout->addWidget(pNameLabel);
                 pLayout->addWidget(pValueEdit);
 
-                m_oBind.insert(pValueEdit, pStandardItem);
+                m_oBind.insert(pValueEdit, pCustomItem);
 
                 m_pContentLayout->addLayout(pLayout);
         }
@@ -168,16 +161,16 @@ void CEditItemWidget::ParsingAttachments(QStandardItem *pStandardItem, unsigned 
         {
                 if (unLevel != 0)
                 {
-                        QLabel *pLabel = new QLabel(qsName);
+                        QLabel *pLabel = new QLabel(pCustomItem->GetName());
                         pLabel->setStyleSheet(QString("QLabel { font-style: italic; margin-left: %1 }").arg((unLevel - 1) * 20));
 
                         m_pContentLayout->addWidget(pLabel);
                 }
                 else
-                        this->setWindowTitle("Edit: " + qsName);
+                        this->setWindowTitle("Edit: " + pCustomItem->GetName());
 
                 for (unsigned int unNumberRow = 0; unNumberRow < unCountRow; ++unNumberRow)
-                        ParsingAttachments(pStandardItem->child(unNumberRow), unLevel + 1);
+                        ParsingAttachments((CCustomItem*)pCustomItem->child(unNumberRow), unLevel + 1);
         }
 }
 
@@ -186,16 +179,16 @@ void CEditItemWidget::closeEvent(QCloseEvent *event)
         slotCancelButtonClicked();
 }
 
-void CEditItemWidget::DeleteItem(QStandardItem *pStandardItem)
+void CEditItemWidget::DeleteItem(CCustomItem *pCustomItem)
 {
-        QStandardItem *pParent = pStandardItem->parent();
+        QStandardItem *pParent = pCustomItem->parent();
 
         if (NULL == pParent)
                 return;
 
-        emit signalDeleteItem(pStandardItem);
+        emit signalDeleteItem(pCustomItem);
 
-        pParent->removeRow(pStandardItem->index().row());
+        pParent->removeRow(pCustomItem->index().row());
 
 //        if (NULL != m_pMainWindow)
 //        {

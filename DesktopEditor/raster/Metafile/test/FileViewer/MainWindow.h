@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 #include "Widgets/CFileViewWidget.h"
-#include "Widgets/CMetafileTreeWidget.h"
+#include "Widgets/CFileTreeWidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,12 +23,14 @@ private slots:
 
         void on_actionChoose_File_triggered();
 
+        void on_actionStatistics_triggered();
+
 protected:
         void resizeEvent(QResizeEvent *pResizeEvent) override;
 
 private:
         Ui::MainWindow *ui;
-        FileView::CFileViewWidget m_oFileViewWidget;
-        CMetafileTreeWidget       m_oMetafileTreeWidget;
+        Widgets::CFileViewWidget m_oFileViewWidget;
+        Widgets::CFileTreeWidget m_oFileTreeWidget;
 };
 #endif // MAINWINDOW_H

@@ -5,8 +5,15 @@
 #include <QWidget>
 #include <QGraphicsView>
 
-namespace FileView
+namespace Widgets
 {
+        typedef enum
+        {
+                FileTypeUnknown = 0,
+                FileTypeMetafile = 1,
+                FileTypeSvg = 2
+        } FileType;
+
         class CFileViewWidget : public QWidget
         {
                 Q_OBJECT
@@ -16,6 +23,8 @@ namespace FileView
                 virtual ~CFileViewWidget();
 
                 bool LoadFile(const QString& qsFilePath);
+                QString GetXmlFilePath() const;
+                FileType GetFileType() const;
         private:
                 void InitLayout();
                 void Clear();
@@ -23,12 +32,12 @@ namespace FileView
                 bool LoadSourceFile(const QString& qsFilePath);
                 bool LoadResultingFile(const QString& qsFilePath);
 
-                QString         m_qsFilePath;
+                QString         m_qsRasterFilePath;
+                QString         m_qsXmlFilePath;
                 QGraphicsScene  m_oSourceFileScene;
                 QGraphicsScene  m_oResultingFileScene;
 
-//                QGraphicsView   m_oSourceFileView;
-//                QGraphicsView   m_oResultingFileView;
+                FileType        m_enFileType;
         };
 
 }

@@ -9,14 +9,15 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Widgets/CFileTreeWidget.cpp \
     Widgets/CFileViewWidget.cpp \
-    Widgets/CMetafileTreeWidget.cpp \
     Widgets/CRecordCreator.cpp \
     Widgets/CStatisticsWidget.cpp \
+    Widgets/Common/CCustomItem.cpp \
     Widgets/Common/CEditItemWidget.cpp \
+    Widgets/Common/CFileTreeView.cpp \
     Widgets/Common/CItemWidget.cpp \
     Widgets/Common/CMapModel.cpp \
-    Widgets/Common/CMetafileTreeView.cpp \
     Widgets/Common/CTextEditDelegate.cpp \
     Widgets/Common/CXMLHighlighter.cpp \
     Widgets/RecordWidgets/CCIEXYZTripleWidget.cpp \
@@ -51,14 +52,15 @@ SOURCES += \
 
 HEADERS += \
     MainWindow.h \
+    Widgets/CFileTreeWidget.h \
     Widgets/CFileViewWidget.h \
-    Widgets/CMetafileTreeWidget.h \
     Widgets/CRecordCreator.h \
     Widgets/CStatisticsWidget.h \
+    Widgets/Common/CCustomItem.h \
     Widgets/Common/CEditItemWidget.h \
+    Widgets/Common/CFileTreeView.h \
     Widgets/Common/CItemWidget.h \
     Widgets/Common/CMapModel.h \
-    Widgets/Common/CMetafileTreeView.h \
     Widgets/Common/CTextEditDelegate.h \
     Widgets/Common/CXMLHighlighter.h \
     Widgets/RecordWidgets/CCIEXYZTripleWidget.h \

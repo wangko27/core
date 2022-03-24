@@ -4,8 +4,8 @@
 #include <QWidget>
 #include <QTextEdit>
 #include <QBoxLayout>
-#include <QStandardItem>
 
+#include "CCustomItem.h"
 #include "MainWindow.h"
 
 namespace Ui {
@@ -20,7 +20,7 @@ class CEditItemWidget : public QWidget
         ~CEditItemWidget();
 
         void SetMainWindow(MainWindow *pMainWindow);
-        void SetItem(QStandardItem *pStandardItem);
+        void SetItem(CCustomItem *pStandardItem);
 
     private slots:
         void slotSaveButtonCliked();
@@ -29,22 +29,22 @@ class CEditItemWidget : public QWidget
         void slotDeleteButtonClicked();
 
     signals:
-        void signalDeleteItem(QStandardItem *pDeletedItem);
+        void signalDeleteItem(CCustomItem *pDeletedItem);
 
     private:
         void ParsingItem();
-        void ParsingAttachments(QStandardItem* pStandardItem, unsigned int unLevel = 0);
+        void ParsingAttachments(CCustomItem* pStandardItem, unsigned int unLevel = 0);
 
         void closeEvent(QCloseEvent *event) override;
-        void DeleteItem(QStandardItem *pStandardItem);
+        void DeleteItem(CCustomItem *pCustomItem);
 
         Ui::CEditItemWidget *ui;
-        MainWindow *m_pMainWindow;
-        QStandardItem *m_pStandardItem;
-        QBoxLayout *m_pContentLayout;
-        QBoxLayout *m_pButtonsLayout;
+        MainWindow      *m_pMainWindow;
+        CCustomItem     *m_pStandardItem;
+        QBoxLayout      *m_pContentLayout;
+        QBoxLayout      *m_pButtonsLayout;
 
-        QMap<QTextEdit*, QStandardItem*> m_oBind;
+        QMap<QTextEdit*, CCustomItem*> m_oBind;
 };
 
 #endif // CEDITITEMWIDGET_H

@@ -2,7 +2,10 @@
 #include "ui_MainWindow.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QResizeEvent>
+
+#include "Widgets/CStatisticsWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent)
@@ -10,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
         ui->setupUi(this);
         ui->horizontalLayout->addWidget(&m_oFileViewWidget);
-        ui->horizontalLayout->addWidget(&m_oMetafileTreeWidget);
+        ui->horizontalLayout->addWidget(&m_oFileTreeWidget);
 }
 
 MainWindow::~MainWindow()
@@ -36,11 +39,30 @@ void MainWindow::on_actionChoose_File_triggered()
 {
         std::wstring wsPathToFile = QFileDialog::getOpenFileName(this, tr("Open file"), "", tr("Metafile (*.emf *.wmf *.svg)")).toStdWString();
 
+        ui->actionStatistics->setEnabled(false);
+
         if (wsPathToFile.empty())
                 return;
 
-        m_oFileViewWidget.LoadFile(QString::fromStdWString(wsPathToFile));
+        if (m_oFileViewWidget.LoadFile(QString::fromStdWString(wsPathToFile)))
+        {
+                if (Widgets::FileTypeSvg == m_oFileViewWidget.GetFileType() && m_oFileTreeWidget.SetFile(wsPathToFile))
+                        ui->actionStatistics->setEnabled(true);
+                else if (m_oFileTreeWidget.SetFile(m_oFileViewWidget.GetXmlFilePath().toStdWString()))
+                        ui->actionStatistics->setEnabled(true);
+        }
+        else
+        {
+                QMessageBox::information(this, "Error", "Couldn't open file");
+        }
+}
 
-        m_oMetafileTreeWidget.SetMetafile(wsPathToFile);
+
+void MainWindow::on_actionStatistics_triggered()
+{
+        CStatisticsWidget *pStaticsWidget = new CStatisticsWidget;
+        pStaticsWidget->SetMainWindow(this);
+        pStaticsWidget->SetStatistics(m_oFileTreeWidget.GetStatistics());
+        pStaticsWidget->show();
 }
 

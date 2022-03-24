@@ -20,7 +20,7 @@
       <x>-1</x>
       <y>-1</y>
       <width>801</width>
-      <height>551</height>
+      <height>571</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout"/>
@@ -40,12 +40,12 @@
      <string>File</string>
     </property>
     <addaction name="actionChoose_File"/>
+    <addaction name="actionStatistics"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionChoose_File">
    <property name="text">
     <string>Choose File</string>
@@ -54,6 +54,14 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionStatistics">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Statistics</string>
    </property>
   </action>
  </widget>
