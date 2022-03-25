@@ -171,25 +171,33 @@ namespace Widgets
         QMap<QString, unsigned int> CFileTreeWidget::GetStatistics()
         {
                 if (NULL != m_pFileTreeView)
-                {
+                {                                
                         QMap<QString, unsigned int> mStatictics;
-                        unsigned int unIndexRecord = 0;
 
-                        QModelIndex oMainIndex = m_pFileTreeView->model()->index(0, 0);
-                        QModelIndex oIndex = oMainIndex.child(unIndexRecord++, 0);
+                        QStandardItemModel *pStandardItemModel = (QStandardItemModel*)m_pFileTreeView->model();
+                        QModelIndex oRootIndex = pStandardItemModel->index(0, 0);
+                        CCustomItem *pRootItem = (CCustomItem*)pStandardItemModel->itemFromIndex(oRootIndex);
 
-                        while (oIndex.isValid())
-                        {
-                                QString qsNameRecord = oIndex.data(1).toString();
-                                qsNameRecord = qsNameRecord.mid(1, qsNameRecord.length() - 2);
-                                ++mStatictics[qsNameRecord];
-                                oIndex = oMainIndex.child(unIndexRecord++, 0);
-                        }
+                        ProcessNode(pRootItem, mStatictics);
 
                         return mStatictics;
                 }
 
                 return {};
+        }
+
+        void CFileTreeWidget::ProcessNode(const CCustomItem *pCustomItem, Statistics &mStatistics)
+        {
+                if (NULL == pCustomItem)
+                        return;
+
+                QString qsName = pCustomItem->GetName();
+
+                if (CustomItemTypeRecord == pCustomItem->GetType())
+                        ++mStatistics[pCustomItem->GetName()];
+
+                for (unsigned short unIndex = 0; unIndex < pCustomItem->rowCount(); ++unIndex)
+                        ProcessNode((CCustomItem*)pCustomItem->child(unIndex), mStatistics);
         }
 
         bool CFileTreeWidget::SaveInXmlFile(const std::wstring &wsSaveFilePath)
@@ -300,13 +308,20 @@ namespace Widgets
                         return;
 
                 CCustomItem *pStandardItem = static_cast<CCustomItem*>(oModelIndex.internalPointer());
+
+                if (NULL == pStandardItem)
+                        return;
+
                 CCustomItem *pItem = (CCustomItem*)pStandardItem->child(oModelIndex.row(), oModelIndex.column());
+
+                if (NULL == pItem || CustomItemTypeRootRecord == pItem->GetType())
+                        return;
 
                 QMenu oContextMenu;
 
                 oContextMenu.addAction("Edit", this, [this, pItem](){m_pFileTreeView->EditItem(pItem);});
 
-                if (true == pItem->data(3))
+                if (CustomItemTypeRecord == pItem->GetType())
                 {
                         oContextMenu.addAction("Insert before", this, [this, pStandardItem, oModelIndex](){InsertRecord(pStandardItem, oModelIndex.row());});
                         oContextMenu.addAction("Insert after", this,  [this, pStandardItem, oModelIndex](){InsertRecord(pStandardItem, oModelIndex.row(), false);});

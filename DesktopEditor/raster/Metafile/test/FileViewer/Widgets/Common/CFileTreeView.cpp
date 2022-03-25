@@ -32,6 +32,7 @@ bool CFileTreeView::SetFile(const std::wstring &wsXmlFilePath)
         CCustomItem *pStandardItem = new CCustomItem(QString::fromStdWString(oXmlRootNode.GetName()));
 
         pStandardItem->setEditable(false);
+        pStandardItem->SetType(CustomItemTypeRootRecord);
 
         ReadXmlNode(oXmlRootNode, pStandardItem, 1);
 
@@ -83,6 +84,10 @@ bool CFileTreeView::SaveInXmlFile(const std::wstring& wsSaveFilePath)
 void CFileTreeView::ReadXmlNode(XmlUtils::CXmlNode& oXmlNode, CCustomItem* pCustomItem, unsigned int unLevel)
 {
         pCustomItem->SetName(QString::fromStdWString(oXmlNode.GetName()));
+
+        if (2 == unLevel)
+                pCustomItem->SetType(CustomItemTypeRecord);
+
         ReadArguments(oXmlNode, pCustomItem);
 
         XmlUtils::CXmlNodes oXmlChilds;

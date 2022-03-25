@@ -23,6 +23,11 @@ void CCustomItem::AddArguments(const std::vector<std::wstring> &arNames, const s
                 m_arArguments.push_back(std::pair<QString, QString>(QString::fromStdWString(arNames[unIndex]), QString::fromStdWString(arValues[unIndex])));
 }
 
+void CCustomItem::SetType(CustomItemType enType)
+{
+        m_enType = enType;
+}
+
 QString CCustomItem::GetName() const
 {
         return m_qsName;

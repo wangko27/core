@@ -134,9 +134,7 @@ void CEditItemWidget::ParsingAttachments(CCustomItem *pCustomItem, unsigned int 
         if (NULL == pCustomItem)
                 return;
 
-        const unsigned int unCountRow           = pCustomItem->rowCount();
-
-
+        const unsigned int unCountRow = pCustomItem->rowCount();
 
         if (unCountRow == 0)
         {
@@ -147,8 +145,8 @@ void CEditItemWidget::ParsingAttachments(CCustomItem *pCustomItem, unsigned int 
 
                 pNameLabel->setStyleSheet(QString("QLabel { margin-left: %1 }").arg((unLevel - 1) * 20));
 
-                QFontMetrics oFontMEtrics(pValueEdit->font());
-                pValueEdit->setFixedHeight(oFontMEtrics.height() + 10);
+                QFontMetrics oFontMetrics(pValueEdit->font());
+                pValueEdit->setFixedHeight(oFontMetrics.height() + 10);
                 pValueEdit->setStyleSheet("QTextEdit { vertical-align: middle }");
                 pLayout->addWidget(pNameLabel);
                 pLayout->addWidget(pValueEdit);

@@ -12,6 +12,7 @@
 
 namespace Widgets
 {
+        typedef QMap<QString, unsigned int> Statistics;
         class CFileTreeWidget : public QWidget
         {
                 Q_OBJECT
@@ -38,7 +39,8 @@ namespace Widgets
                 bool IsClearTree();
                 void SetMode(bool bLightMode);
                 void ClearTree();
-                QMap<QString, unsigned int> GetStatistics();
+                Statistics GetStatistics();
+                void ProcessNode(const CCustomItem *pCustomItem, Statistics& mStatistics);
 
                 bool SaveInXmlFile(const std::wstring& wsSaveFilePath);
 

@@ -23,10 +23,12 @@ class CCustomItem : public QStandardItem
         void SetName(const QString& qsName);
         void SetValue(const QString& qsValue);
         void AddArguments(const std::vector<std::wstring>& arNames, const std::vector<std::wstring>& arValues);
+        void SetType(CustomItemType enType);
 
         QString GetName() const;
         QString GetValue() const;
         ItemArguments GetArguments() const;
+        unsigned int GetCountArguments() const;
         CustomItemType GetType() const;
 
         virtual QVariant data(int role = Qt::UserRole + 1) const override;
