@@ -5,7 +5,7 @@
 #include <QMouseEvent>
 #include "CTextEditDelegate.h"
 
-#include "CEditItemWidget.h"
+#include "../CEditItemWidget.h"
 
 CFileTreeView::CFileTreeView(QWidget *parent) :
     QTreeView(parent)
@@ -183,13 +183,20 @@ void CFileTreeView::EditItem(CCustomItem *pStandardItem)
         if (NULL == pStandardItem)
                 return;
 
-        CEditItemWidget *pEditItemWidget = new CEditItemWidget;
+        Widgets::CEditItemWidget *pEditItemWidget = new Widgets::CEditItemWidget;
 
-        connect(pEditItemWidget, &CEditItemWidget::signalDeleteItem, this, &CFileTreeView::slotDeleteItem);
-
-        pEditItemWidget->SetMainWindow((MainWindow*)parent()->parent()->parent()->parent());
         pEditItemWidget->SetItem(pStandardItem);
-        pEditItemWidget->show();
+
+        if (QDialog::Accepted == pEditItemWidget->exec())
+        {
+
+        }
+
+//        connect(pEditItemWidget, &CEditItemWidget::signalDeleteItem, this, &CFileTreeView::slotDeleteItem);
+
+//        pEditItemWidget->SetMainWindow((MainWindow*)parent()->parent()->parent()->parent());
+//        pEditItemWidget->SetItem(pStandardItem);
+//        pEditItemWidget->show();
 }
 
 void CFileTreeView::slotDeleteItem(CCustomItem *pDeletedItem)

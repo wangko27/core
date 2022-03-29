@@ -39,6 +39,7 @@ private:
         friend class CLogPaletteWidget;
         friend class CExtTextOutWidget;
         friend class CLinkedUFISWidget;
+        friend class CArgumentsWidget;
         friend class CInvertRgnWidget;
         friend class CLogFontExWidget;
         friend class CTriVertexWidget;

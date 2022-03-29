@@ -9,17 +9,19 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Widgets/CEditItemWidget.cpp \
     Widgets/CFileTreeWidget.cpp \
     Widgets/CFileViewWidget.cpp \
     Widgets/CRecordCreator.cpp \
     Widgets/CStatisticsWidget.cpp \
     Widgets/Common/CCustomItem.cpp \
-    Widgets/Common/CEditItemWidget.cpp \
     Widgets/Common/CFileTreeView.cpp \
     Widgets/Common/CItemWidget.cpp \
     Widgets/Common/CMapModel.cpp \
     Widgets/Common/CTextEditDelegate.cpp \
     Widgets/Common/CXMLHighlighter.cpp \
+    Widgets/RecordWidgets/CFormCreatorWidget.cpp \
+    Widgets/RecordWidgets/CArgumentsWidget.cpp \
     Widgets/RecordWidgets/CCIEXYZTripleWidget.cpp \
     Widgets/RecordWidgets/CColorWidget.cpp \
     Widgets/RecordWidgets/CEmptyWidget.cpp \
@@ -52,17 +54,19 @@ SOURCES += \
 
 HEADERS += \
     MainWindow.h \
+    Widgets/CEditItemWidget.h \
     Widgets/CFileTreeWidget.h \
     Widgets/CFileViewWidget.h \
     Widgets/CRecordCreator.h \
     Widgets/CStatisticsWidget.h \
     Widgets/Common/CCustomItem.h \
-    Widgets/Common/CEditItemWidget.h \
     Widgets/Common/CFileTreeView.h \
     Widgets/Common/CItemWidget.h \
     Widgets/Common/CMapModel.h \
     Widgets/Common/CTextEditDelegate.h \
     Widgets/Common/CXMLHighlighter.h \
+    Widgets/RecordWidgets/CFormCreatorWidget.h \
+    Widgets/RecordWidgets/CArgumentsWidget.h \
     Widgets/RecordWidgets/CCIEXYZTripleWidget.h \
     Widgets/RecordWidgets/CColorWidget.h \
     Widgets/RecordWidgets/CEmptyWidget.h \
@@ -94,10 +98,12 @@ HEADERS += \
     Widgets/RecordWidgets/Common.h
 
 FORMS += \
+    Ui/FormCreator.ui \
     Ui/EditItem.ui \
     Ui/MainWindow.ui \
     Ui/RecordCreator.ui \
-    Ui/Statistics.ui
+    Ui/Statistics.ui \
+    Ui/EditItem.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
