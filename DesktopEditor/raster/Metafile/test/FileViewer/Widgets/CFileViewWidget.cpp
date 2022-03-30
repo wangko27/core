@@ -63,6 +63,11 @@ namespace Widgets
                 return m_enFileType;
         }
 
+        void CFileViewWidget::slotUpdate()
+        {
+
+        }
+
         void CFileViewWidget::InitLayout()
         {
                 QVBoxLayout *pMainLayout = new QVBoxLayout;

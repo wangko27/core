@@ -11,13 +11,13 @@ namespace Ui {
         class CRecordCreator;
 }
 
-class CRecordCreator : public QDialog
+class CEMFRecordCreator : public QDialog
 {
         Q_OBJECT
 
 public:
-        explicit CRecordCreator(QWidget *parent = nullptr);
-        virtual ~CRecordCreator();
+        explicit CEMFRecordCreator(QWidget *parent = nullptr);
+        virtual ~CEMFRecordCreator();
 
         void SetMainWindow(MainWindow *pMainWindow);
         QStandardItem* CreateRecord();

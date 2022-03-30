@@ -6,12 +6,20 @@
 #include <QHBoxLayout>
 #include <QTextEdit>
 
+#include "RecordWidgets/CArgumentsWidget.h"
+
 namespace Ui {
         class CEditItemWidget;
 }
 
 namespace Widgets
 {
+        struct TCCustomItemBind
+        {
+                QTextEdit* pValueEdit;
+                CArgumentsWidget *pArgumentsWidget;
+        };
+
         class CEditItemWidget : public QDialog
         {
                 Q_OBJECT
@@ -21,6 +29,10 @@ namespace Widgets
                 ~CEditItemWidget();
 
                 void SetItem(CCustomItem* pCustomItem);
+                void Update();
+
+            signals:
+                void signalDeleteItem();
 
             protected:
                 void resizeEvent(QResizeEvent *pResizeEvent) override;
@@ -31,7 +43,8 @@ namespace Widgets
                 void ParseArguments(CCustomItem* pCustomItem, QHBoxLayout* pLayout);
 
                 Ui::CEditItemWidget *ui;
-                QMap<QTextEdit*, CCustomItem*> m_oBind;
+
+                QMap<CCustomItem*, TCCustomItemBind> m_oBind;
 
                 void UpdateSize();
         };

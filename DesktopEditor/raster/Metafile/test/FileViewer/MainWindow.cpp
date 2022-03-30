@@ -12,8 +12,11 @@ MainWindow::MainWindow(QWidget *parent)
         , ui(new Ui::MainWindow)
 {
         ui->setupUi(this);
+
         ui->horizontalLayout->addWidget(&m_oFileViewWidget);
         ui->horizontalLayout->addWidget(&m_oFileTreeWidget);
+
+        connect(&m_oFileTreeWidget, &Widgets::CFileTreeWidget::signalUpdate, &m_oFileViewWidget, &Widgets::CFileViewWidget::slotUpdate);
 }
 
 MainWindow::~MainWindow()
@@ -46,9 +49,9 @@ void MainWindow::on_actionChoose_File_triggered()
 
         if (m_oFileViewWidget.LoadFile(QString::fromStdWString(wsPathToFile)))
         {
-                if (Widgets::FileTypeSvg == m_oFileViewWidget.GetFileType() && m_oFileTreeWidget.SetFile(wsPathToFile))
+                if (Widgets::FileTypeSvg == m_oFileViewWidget.GetFileType() && m_oFileTreeWidget.SetFile(wsPathToFile, Widgets::FileTypeSvg))
                         ui->actionStatistics->setEnabled(true);
-                else if (m_oFileTreeWidget.SetFile(m_oFileViewWidget.GetXmlFilePath().toStdWString()))
+                else if (m_oFileTreeWidget.SetFile(m_oFileViewWidget.GetXmlFilePath().toStdWString(), Widgets::FileTypeMetafile))
                         ui->actionStatistics->setEnabled(true);
         }
         else

@@ -33,6 +33,7 @@ bool CFileTreeView::SetFile(const std::wstring &wsXmlFilePath)
 
         pStandardItem->setEditable(false);
         pStandardItem->SetType(CustomItemTypeRootRecord);
+        pStandardItem->setSelectable(false);
 
         ReadXmlNode(oXmlRootNode, pStandardItem, 1);
 
@@ -100,6 +101,8 @@ void CFileTreeView::ReadXmlNode(XmlUtils::CXmlNode& oXmlNode, CCustomItem* pCust
                         if (oXmlChilds.GetAt(i, oXmlChild))
                         {
                                 CCustomItem *pStandardItem = new CCustomItem;
+                                pStandardItem->setEditable(false);
+                                pStandardItem->setSelectable(false);
 
                                 ReadXmlNode(oXmlChild, pStandardItem, unLevel + 1);
 
@@ -144,64 +147,38 @@ std::wstring StringNormalization(std::wstring wsString)
     return wsText;
 }
 
-void CFileTreeView::WriteXmlNode(XmlUtils::CXmlWriter &oXmlWriter, CCustomItem *oStandartItem)
+void CFileTreeView::WriteXmlNode(XmlUtils::CXmlWriter &oXmlWriter, CCustomItem *pCustomItem)
 {
-        unsigned int unCountNodes = oStandartItem->rowCount();
-
-        QString qsNodeText = oStandartItem->data(0).toString();
-
-        unsigned int unFirstQuotationMark = qsNodeText.indexOf(L'>');
-        unsigned int unLastSlash = qsNodeText.lastIndexOf(L'/');
-
-        std::wstring wsName = qsNodeText.mid(1, ((unLastSlash > unFirstQuotationMark) ? (unFirstQuotationMark) : (unLastSlash)) - 1).toStdWString();
-
-        if (oStandartItem->rowCount() == 0)
-        {
-                std::wstring wsValue;
-
-                if (unLastSlash > unFirstQuotationMark)
-                        wsValue = qsNodeText.mid(unFirstQuotationMark + 1, unLastSlash - unFirstQuotationMark - 2).toStdWString();
-
-                oXmlWriter.WriteNode(wsName, StringNormalization(wsValue));
-
-                return;
-        }
-
-        oXmlWriter.WriteNodeBegin(wsName);
-
-        for (unsigned int unIndexNode = 0; unIndexNode < unCountNodes; ++unIndexNode)
-        {
-                CCustomItem *pNode = (CCustomItem*)oStandartItem->child(unIndexNode);
-                WriteXmlNode(oXmlWriter, pNode);
-        }
-
-        oXmlWriter.WriteNodeEnd(wsName);
-}
-
-void CFileTreeView::EditItem(CCustomItem *pStandardItem)
-{
-        if (NULL == pStandardItem)
+        if (NULL == pCustomItem)
                 return;
 
-        Widgets::CEditItemWidget *pEditItemWidget = new Widgets::CEditItemWidget;
+        unsigned int unCountNodes       = pCustomItem->rowCount();
+        std::wstring wsName             = pCustomItem->GetName().toStdWString();
+        std::wstring wsValue            = pCustomItem->GetValue().toStdWString();
+        ItemArguments arArguments       = pCustomItem->GetArguments();
 
-        pEditItemWidget->SetItem(pStandardItem);
+        oXmlWriter.WriteNodeBegin(wsName, !arArguments.empty());
 
-        if (QDialog::Accepted == pEditItemWidget->exec())
+        for (const ItemArgument& oArgiment : arArguments)
+                oXmlWriter.WriteAttribute(oArgiment.first.toStdWString(), oArgiment.second.toStdWString());
+
+        if (!arArguments.empty())
+                oXmlWriter.WriteNodeEnd(wsName, true, ((0 == unCountNodes) && (wsValue.empty())) ? true : false);
+
+        if (0 != unCountNodes)
         {
-
+                for (unsigned int unIndexNode = 0; unIndexNode < unCountNodes; ++unIndexNode)
+                {
+                        CCustomItem *pNode = (CCustomItem*)pCustomItem->child(unIndexNode);
+                        WriteXmlNode(oXmlWriter, pNode);
+                }
+                oXmlWriter.WriteNodeEnd(wsName);
         }
-
-//        connect(pEditItemWidget, &CEditItemWidget::signalDeleteItem, this, &CFileTreeView::slotDeleteItem);
-
-//        pEditItemWidget->SetMainWindow((MainWindow*)parent()->parent()->parent()->parent());
-//        pEditItemWidget->SetItem(pStandardItem);
-//        pEditItemWidget->show();
-}
-
-void CFileTreeView::slotDeleteItem(CCustomItem *pDeletedItem)
-{
-        emit signalDeleteItem(pDeletedItem);
+        else if (!wsValue.empty())
+        {
+                oXmlWriter.WriteString(wsValue);
+                oXmlWriter.WriteNodeEnd(wsName);
+        }
 }
 
 void CFileTreeView::mouseReleaseEvent(QMouseEvent *event)

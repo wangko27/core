@@ -23,6 +23,7 @@ class CCustomItem : public QStandardItem
         void SetName(const QString& qsName);
         void SetValue(const QString& qsValue);
         void AddArguments(const std::vector<std::wstring>& arNames, const std::vector<std::wstring>& arValues);
+        void SetArguments(const ItemArguments& arArguments);
         void SetType(CustomItemType enType);
 
         QString GetName() const;

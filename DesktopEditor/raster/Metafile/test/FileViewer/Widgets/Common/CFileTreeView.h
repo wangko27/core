@@ -21,14 +21,9 @@ class CFileTreeView : public QTreeView
 
         bool SaveInXmlFile(const std::wstring& wsSaveFilePath);
 
-        void EditItem(CCustomItem* pStandardItem);
     signals:
         void clickedRightMouseButton(QPoint oPoint);
         void clickedLeftMouseButton(QPoint oPoint);
-        void signalDeleteItem(CCustomItem *pDeletedItem);
-
-    private slots:
-        void slotDeleteItem(CCustomItem *pDeletedItem);
 
     protected:
         virtual void mouseReleaseEvent(QMouseEvent* event) override;

@@ -40,3 +40,8 @@ QTextEdit *CFormWidget::GetTextEditWidget() const
 {
         return m_pValue;
 }
+
+QString CFormWidget::GetName() const
+{
+        return m_qsName;
+}

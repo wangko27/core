@@ -13,6 +13,7 @@ public:
 
         virtual QList<QStandardItem*> GetData() const override;
         QTextEdit* GetTextEditWidget() const;
+        QString GetName() const;
 private:
         QString m_qsName;
         QTextEdit *m_pValue;

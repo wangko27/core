@@ -7,8 +7,6 @@
 #include <QLabel>
 #include <QMap>
 
-#include "RecordWidgets/CArgumentsWidget.h"
-
 namespace Widgets
 {
         CEditItemWidget::CEditItemWidget(QWidget *parent) :
@@ -44,6 +42,20 @@ namespace Widgets
                 UpdateSize();
         }
 
+        void CEditItemWidget::Update()
+        {
+                foreach(CCustomItem* pCustomItem, m_oBind.keys())
+                {
+                        TCCustomItemBind oBind = m_oBind.value(pCustomItem);
+
+                        if (NULL != oBind.pValueEdit)
+                                pCustomItem->SetValue(oBind.pValueEdit->toPlainText());
+
+                        if (NULL != oBind.pArgumentsWidget)
+                                pCustomItem->SetArguments(oBind.pArgumentsWidget->GetArguments());
+                }
+        }
+
         void CEditItemWidget::resizeEvent(QResizeEvent *pResizeEvent)
         {
                 unsigned int unHeightButtonBox      = ui->buttonBox->height();
@@ -62,6 +74,8 @@ namespace Widgets
                 if (CustomItemTypeRootRecord != pCustomItem->GetType())
                 {
                         QPushButton *pDeleteButton = ui->buttonBox->addButton("Delete", QDialogButtonBox::ApplyRole);
+
+                        connect(pDeleteButton, &QPushButton::clicked, this, [this](){emit signalDeleteItem(); this->reject();});
                 }
 
                 ParseAttachments(pCustomItem);
@@ -79,23 +93,27 @@ namespace Widgets
                         QHBoxLayout *pCategoriesLayout = new QHBoxLayout;
 
                         QLabel *pNameLabel      = new QLabel(pCustomItem->GetName());
-                        QTextEdit *pValueEdit   = new QTextEdit(pCustomItem->GetValue());
-
-                        QFontMetrics oFontMetrics(pValueEdit->font());
-                        pValueEdit->setFixedHeight(oFontMetrics.height() + 10);
-                        pValueEdit->setMidLineWidth(30);
-                        pValueEdit->setStyleSheet("QTextEdit { vertical-align: middle }");
 
                         pCategoriesLayout->addSpacing((unLevel != 0) ? ((unLevel - 1) * 20) : 0);
                         pCategoriesLayout->addWidget(pNameLabel);
 
                         ParseArguments(pCustomItem, pCategoriesLayout);
 
-                        pCategoriesLayout->addWidget(pValueEdit);
+                        if (CustomItemTypeRecord != pCustomItem->GetType())
+                        {
+                                QTextEdit *pValueEdit   = new QTextEdit(pCustomItem->GetValue());
+
+                                QFontMetrics oFontMetrics(pValueEdit->font());
+                                pValueEdit->setFixedHeight(oFontMetrics.height() + 10);
+                                pValueEdit->setMidLineWidth(30);
+                                pValueEdit->setStyleSheet("QTextEdit { vertical-align: middle }");
+
+                                pCategoriesLayout->addWidget(pValueEdit);
+
+                                m_oBind[pCustomItem].pValueEdit = pValueEdit;
+                        }
 
                         pCategoriesLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
-                        m_oBind.insert(pValueEdit, pCustomItem);
 
                         ui->DataLayout->addLayout(pCategoriesLayout);
                 }
@@ -122,6 +140,8 @@ namespace Widgets
                         return;
 
                 CArgumentsWidget *pWidget = new CArgumentsWidget(pCustomItem->GetArguments());
+
+                m_oBind[pCustomItem].pArgumentsWidget = pWidget;
 
                 pLayout->addWidget(pWidget);
         }

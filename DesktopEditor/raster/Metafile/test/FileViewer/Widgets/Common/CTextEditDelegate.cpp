@@ -11,6 +11,8 @@
 
 #include <QComboBox>
 
+#include "CCustomItem.h"
+
 CTextEditDelegate::CTextEditDelegate(QWidget *parent) :
         QStyledItemDelegate(parent),
         pFont(NULL)
@@ -71,7 +73,11 @@ void CTextEditDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         else
                 qsValue = index.data(0).toString();
 
-        if (index.data(5) == true)
+        QStandardItemModel *pItemModel = (QStandardItemModel*)index.model();
+
+        CCustomItem *pItem = (CCustomItem*)pItemModel->itemFromIndex(index);
+
+        if (NULL != pItem && pItem->isSelectable())
         {
                 QRect oRect(option.rect);
 

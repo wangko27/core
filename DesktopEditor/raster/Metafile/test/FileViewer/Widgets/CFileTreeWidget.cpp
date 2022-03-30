@@ -6,6 +6,9 @@
 #include "CRecordCreator.h"
 #include "RecordWidgets/Common.h"
 
+
+#include "CEditItemWidget.h"
+
 namespace Widgets
 {
         CFileTreeWidget::CFileTreeWidget(QWidget *parent)
@@ -14,7 +17,6 @@ namespace Widgets
                   m_pFindNextButton(NULL),
                   m_pFindPrevButton(NULL),
                   m_pFileTreeView(NULL),
-                  m_nIndexSelectedItem(0),
                   m_pSelectedItem(NULL)
         {
                 QVBoxLayout *pLayout = new QVBoxLayout(this);
@@ -44,9 +46,20 @@ namespace Widgets
                 m_pFileTreeView = new CFileTreeView();
 
                 connect(m_pFileTreeView, &CFileTreeView::clickedRightMouseButton, this, &CFileTreeWidget::slotRBClickedOnMetafileTree);
-                connect(m_pFileTreeView, &CFileTreeView::signalDeleteItem, this,  &CFileTreeWidget::slotDeleteItem);
 
                 pLayout->addWidget(m_pFileTreeView);
+
+
+                CTextEditDelegate *pTextEditDelegate = new CTextEditDelegate(this);
+
+                QFont *pFont = new QFont;
+                pFont->setPointSize(13);
+
+                setFont(*pFont);
+
+                pTextEditDelegate->SetFont(pFont);
+
+                m_pFileTreeView->setItemDelegate(pTextEditDelegate);
         }
 
         CFileTreeWidget::~CFileTreeWidget()
@@ -60,8 +73,6 @@ namespace Widgets
                 if (NULL != m_pFileTreeView)
                         delete m_pFileTreeView;
 
-
-
                 m_pSelectedItem = NULL;
         }
 
@@ -72,14 +83,7 @@ namespace Widgets
                 if (NULL != m_pFindText)
                         m_pFindText->clear();
 
-                m_nIndexSelectedItem = 0;
                 m_pSelectedItem = NULL;
-        }
-
-        void CFileTreeWidget::setItemDelegate(CTextEditDelegate *pTextEditDelegate)
-        {
-                if (NULL != m_pFileTreeView)
-                        m_pFileTreeView->setItemDelegate(pTextEditDelegate);
         }
 
         void CFileTreeWidget::expandAll()
@@ -140,8 +144,10 @@ namespace Widgets
                 return NULL;
         }
 
-        bool CFileTreeWidget::SetFile(const std::wstring &wsXmlFilePath)
+        bool CFileTreeWidget::SetFile(const std::wstring &wsXmlFilePath, FileType enType)
         {
+                m_enFileType = enType;
+
                 if (NULL != m_pFileTreeView)
                         return m_pFileTreeView->SetFile(wsXmlFilePath);
 
@@ -210,14 +216,110 @@ namespace Widgets
 
         void CFileTreeWidget::EditItem(CCustomItem *pStandardItem)
         {
-                if (NULL != m_pFileTreeView)
-                        m_pFileTreeView->EditItem(pStandardItem);
+                if (NULL == pStandardItem)
+                        return;
+
+                m_pSelectedItem = pStandardItem;
+
+                CEditItemWidget *pEditItemWidget = new CEditItemWidget;
+
+                connect(pEditItemWidget, &CEditItemWidget::signalDeleteItem, this, [this](){slotDeleteItem();});
+
+                pEditItemWidget->SetItem(pStandardItem);
+
+                if (QDialog::Accepted == pEditItemWidget->exec())
+                {
+                        pEditItemWidget->Update();
+                        SaveInXmlFile(L"Temp.xml");
+                        emit signalUpdate();
+                }
         }
 
         void CFileTreeWidget::mouseReleaseEvent(QMouseEvent *event)
         {
-                m_pSelectedItem = NULL;
+//                m_pSelectedItem = NULL;
                 QWidget::mouseReleaseEvent(event);
+        }
+
+        bool CFileTreeWidget::FindLower(CCustomItem* pCustomItem, QString qsFindValue)
+        {
+                if (NULL == pCustomItem)
+                        return false;
+
+                CCustomItem *pChild;
+                for (unsigned short unIndex = 0; unIndex < pCustomItem->rowCount(); ++unIndex)
+                {
+                        pChild = (CCustomItem*)pCustomItem->child(unIndex);
+                        if (qsFindValue == pChild->GetName().toLower())
+                        {
+                                SetSelectedItem(pChild);
+                                return true;
+                        }
+                        if (FindLower(pChild, qsFindValue))
+                                return true;
+                }
+
+                return false;
+        }
+
+        bool CFileTreeWidget::FindUpperLower(CCustomItem *pCustomItem, QString qsFindValue)
+        {
+                if (NULL == pCustomItem)
+                        return false;
+
+                CCustomItem *pParentItem = (CCustomItem*)pCustomItem->parent();
+
+                if (NULL == pParentItem)
+                        return false;
+
+                for (unsigned int unIndex = pCustomItem->row() + 1; unIndex < pParentItem->rowCount(); ++unIndex)
+                {
+                        CCustomItem *pNextChild = (CCustomItem*)pParentItem->child(unIndex);
+
+                        if (NULL == pNextChild)
+                                return false;
+
+                        if (qsFindValue == pNextChild->GetName().toLower())
+                        {
+                                SetSelectedItem(pNextChild);
+                                return true;
+                        }
+
+                        if (FindLower(pNextChild, qsFindValue))
+                                return true;
+                }
+
+                return false;
+        }
+
+        bool CFileTreeWidget::FindUpperUpper(CCustomItem *pCustomItem, QString qsFindValue)
+        {
+                if (NULL == pCustomItem)
+                        return false;
+
+                CCustomItem *pParentItem = (CCustomItem*)pCustomItem->parent();
+
+                if (NULL == pParentItem)
+                        return false;
+
+                for (unsigned int unIndex = pCustomItem->row() - 1; unIndex > 0; --unIndex)
+                {
+                        CCustomItem *pPrevChild = (CCustomItem*)pParentItem->child(unIndex);
+
+                        if (NULL == pPrevChild)
+                                return false;
+
+                        if (qsFindValue == pPrevChild->GetName().toLower())
+                        {
+                                SetSelectedItem(pPrevChild);
+                                return true;
+                        }
+
+                        if (FindLower(pPrevChild, qsFindValue))
+                                return true;
+                }
+
+                return false;
         }
 
         void CFileTreeWidget::slotFindNext()
@@ -227,74 +329,35 @@ namespace Widgets
 
                 QString qsFindText = m_pFindText->toPlainText().toLower();
 
+                CCustomItem *pStartItem;
+
                 if (NULL != m_pSelectedItem)
-                        m_pSelectedItem->setData(false, 5);
-
-                if (qsFindText.isEmpty())
-                        return;
-
-                QModelIndex oMainIndex = m_pFileTreeView->model()->index(0, 0);
-                QModelIndex oIndex = oMainIndex.child(m_nIndexSelectedItem++, 0);
-
-                while (oIndex.isValid())
+                        pStartItem = m_pSelectedItem;
+                else
                 {
-                        QString qsTextItem = oIndex.data(2).toString().toLower();
-                        if (qsTextItem.contains(qsFindText))
-                        {
-                                QStandardItem *pStandardItem = static_cast<QStandardItem*>(oIndex.internalPointer());
-                                QStandardItem *pItem = pStandardItem->child(oIndex.row(), oIndex.column());
-
-                                m_pFileTreeView->scrollTo(oIndex);
-
-                                m_pSelectedItem = pItem;
-                                pItem->setData(true, 5);
-                                m_pFileTreeView->update();
-                                return;
-                        }
-                        oIndex = oMainIndex.child(m_nIndexSelectedItem++, 0);
+                        QStandardItemModel *pStandardItemModel = (QStandardItemModel*)m_pFileTreeView->model();
+                        QModelIndex oRootIndex = pStandardItemModel->index(0, 0);
+                        pStartItem = (CCustomItem*)pStandardItemModel->itemFromIndex(oRootIndex);
                 }
 
-                m_nIndexSelectedItem = 0;
+                if (FindLower(pStartItem, qsFindText))
+                        return;
+
+                if (!FindUpperLower(pStartItem, qsFindText))
+                        SetSelectedItem(NULL);
         }
 
         void CFileTreeWidget::slotFindPrev()
         {
-                if (NULL == m_pFindText || NULL == m_pFileTreeView || m_pFindText->toPlainText().isEmpty() || IsClearTree() || m_nIndexSelectedItem == 0)
-                        return;
-
-                if (NULL == m_pFindText || NULL == m_pFileTreeView || IsClearTree())
+                if (NULL == m_pFindText || NULL == m_pFileTreeView || IsClearTree() || NULL == m_pSelectedItem)
                         return;
 
                 QString qsFindText = m_pFindText->toPlainText().toLower();
 
-                if (NULL != m_pSelectedItem)
-                        m_pSelectedItem->setData(false, 5);
+                CCustomItem *pStartItem = m_pSelectedItem;
 
-                if (qsFindText.isEmpty())
-                        return;
-
-                QModelIndex oMainIndex = m_pFileTreeView->model()->index(0, 0);
-                QModelIndex oIndex = oMainIndex.child(--m_nIndexSelectedItem - 1, 0);
-
-                while (oIndex.isValid())
-                {
-                        QString qsTextItem = oIndex.data(2).toString().toLower();
-                        if (qsTextItem.contains(qsFindText))
-                        {
-                                QStandardItem *pStandardItem = static_cast<QStandardItem*>(oIndex.internalPointer());
-                                QStandardItem *pItem = pStandardItem->child(oIndex.row(), oIndex.column());
-
-                                m_pFileTreeView->scrollTo(oIndex);
-
-                                m_pSelectedItem = pItem;
-                                pItem->setData(true, 5);
-                                m_pFileTreeView->update();
-                                return;
-                        }
-                        oIndex = oMainIndex.child(--m_nIndexSelectedItem - 1, 0);
-                }
-
-                m_nIndexSelectedItem = 0;
+                if (!FindUpperUpper(pStartItem, qsFindText))
+                        SetSelectedItem(NULL);
         }
 
         void CFileTreeWidget::slotRBClickedOnMetafileTree(QPoint oPoint)
@@ -319,7 +382,7 @@ namespace Widgets
 
                 QMenu oContextMenu;
 
-                oContextMenu.addAction("Edit", this, [this, pItem](){m_pFileTreeView->EditItem(pItem);});
+                oContextMenu.addAction("Edit", this, [this, pItem](){EditItem(pItem);});
 
                 if (CustomItemTypeRecord == pItem->GetType())
                 {
@@ -330,15 +393,21 @@ namespace Widgets
                 oContextMenu.exec(m_pFileTreeView->mapToGlobal(oPoint));
         }
 
-        void CFileTreeWidget::slotDeleteItem(CCustomItem *pDeletedItem)
+        void CFileTreeWidget::slotDeleteItem()
         {
-                if (pDeletedItem == m_pSelectedItem)
+                if (NULL != m_pSelectedItem)
                 {
+                        CCustomItem *pParent = (CCustomItem*)m_pSelectedItem->parent();
+
+                        if (NULL == pParent)
+                                return;
+
+                        pParent->removeRow(m_pSelectedItem->index().row());
+
                         m_pSelectedItem = NULL;
-                        m_nIndexSelectedItem = 0;
+
+                        emit signalUpdate();
                 }
-                else
-                        --m_nIndexSelectedItem;
         }
 
         void CFileTreeWidget::InsertRecord(CCustomItem *pParentItem, unsigned int unRow, bool bAfterRecord)
@@ -346,16 +415,41 @@ namespace Widgets
                 if (NULL == pParentItem)
                         return;
 
-                CRecordCreator *pRecordCreator = new CRecordCreator((QWidget*)parent());
-
-                QStandardItem *pItem = pRecordCreator->CreateRecord();
-
-                if (NULL != pItem)
+                if (FileTypeMetafile == m_enFileType)
                 {
-                        pParentItem->insertRow(unRow + ((bAfterRecord) ? 0 : 1), pItem);
-        //                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
-        //                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
-        //                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
+                        CEMFRecordCreator *pRecordCreator = new CEMFRecordCreator((QWidget*)parent());
+
+                        QStandardItem *pItem = pRecordCreator->CreateRecord();
+
+                        if (NULL != pItem)
+                        {
+                                pParentItem->insertRow(unRow + ((bAfterRecord) ? 0 : 1), pItem);
+
+                                if (SaveInXmlFile(L"Temp.xml"))
+                                        emit signalUpdate();
+
+                //                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
+                //                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
+                //                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
+                        }
+                }
+                else if (FileTypeSvg == m_enFileType)
+                {
+
+                }
+        }
+
+        void CFileTreeWidget::SetSelectedItem(CCustomItem *pSelectedItem)
+        {
+                if (NULL != m_pSelectedItem)
+                        m_pSelectedItem->setSelectable(false);
+
+                m_pSelectedItem = pSelectedItem;
+
+                if (NULL != m_pSelectedItem)
+                {
+                        m_pFileTreeView->scrollTo(m_pSelectedItem->index());
+                        m_pSelectedItem->setSelectable(true);
                 }
         }
 }

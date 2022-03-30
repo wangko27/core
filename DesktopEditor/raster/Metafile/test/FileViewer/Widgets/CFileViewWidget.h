@@ -23,8 +23,11 @@ namespace Widgets
                 virtual ~CFileViewWidget();
 
                 bool LoadFile(const QString& qsFilePath);
+
                 QString GetXmlFilePath() const;
                 FileType GetFileType() const;
+        public slots:
+                void slotUpdate();
         private:
                 void InitLayout();
                 void Clear();

@@ -31,7 +31,7 @@
 
 #include <QLabel>
 
-CRecordCreator::CRecordCreator(QWidget *parent) :
+CEMFRecordCreator::CEMFRecordCreator(QWidget *parent) :
         QDialog(parent),
         ui(new Ui::CRecordCreator),
         m_pMainWindow(NULL),
@@ -49,12 +49,12 @@ CRecordCreator::CRecordCreator(QWidget *parent) :
         }
 }
 
-CRecordCreator::~CRecordCreator()
+CEMFRecordCreator::~CEMFRecordCreator()
 {
         delete ui;
 }
 
-void CRecordCreator::SetMainWindow(MainWindow *pMainWindow)
+void CEMFRecordCreator::SetMainWindow(MainWindow *pMainWindow)
 {
         m_pMainWindow = pMainWindow;
 
@@ -62,7 +62,7 @@ void CRecordCreator::SetMainWindow(MainWindow *pMainWindow)
                 pMainWindow->setEnabled(false);
 }
 
-QStandardItem* CRecordCreator::CreateRecord()
+QStandardItem* CEMFRecordCreator::CreateRecord()
 {
         this->show();
 
@@ -74,7 +74,7 @@ QStandardItem* CRecordCreator::CreateRecord()
         return m_pNewItem;
 }
 
-void CRecordCreator::on_selectButton_clicked()
+void CEMFRecordCreator::on_selectButton_clicked()
 {
         m_nSelectedRecord = ui->recordsBox->currentIndex();
         ClearData();
@@ -204,20 +204,20 @@ void CRecordCreator::on_selectButton_clicked()
                 pOkButton->setEnabled(true);
 }
 
-void CRecordCreator::CreatePointWidgets(const QString& qsName)
+void CEMFRecordCreator::CreatePointWidgets(const QString& qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
 
         AddSharedWidgets({new CPointWidget(QString("Offset"))});
 }
 
-void CRecordCreator::CreateFormWidget(const QString& qsName, const QString& qsFormName)
+void CEMFRecordCreator::CreateFormWidget(const QString& qsName, const QString& qsFormName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CFormWidget(qsFormName, "0"));
 }
 
-void CRecordCreator::CreateColorWidgets(const QString& qsName, bool bBounds)
+void CEMFRecordCreator::CreateColorWidgets(const QString& qsName, bool bBounds)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
 
@@ -227,19 +227,19 @@ void CRecordCreator::CreateColorWidgets(const QString& qsName, bool bBounds)
         AddSharedWidget(new CColorWidget("Color"));
 }
 
-void CRecordCreator::CreateEmptyWidgets(const QString& qsName)
+void CEMFRecordCreator::CreateEmptyWidgets(const QString& qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CEmptyWidget(qsName));
 }
 
-void CRecordCreator::CreateRectangleWidgets(const QString &qsName, const QString &qsReactangleName)
+void CEMFRecordCreator::CreateRectangleWidgets(const QString &qsName, const QString &qsReactangleName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CRectangleWidget(qsReactangleName));
 }
 
-void CRecordCreator::CreateScaleWidgets(const QString &qsName)
+void CEMFRecordCreator::CreateScaleWidgets(const QString &qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
 
@@ -270,7 +270,7 @@ void CRecordCreator::CreateScaleWidgets(const QString &qsName)
         ui->dataLayout->addLayout(pLayout);
 }
 
-void CRecordCreator::CreateArcWidgets(const QString &qsName)
+void CEMFRecordCreator::CreateArcWidgets(const QString &qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidgets({new CRectangleWidget("Box"),
@@ -278,25 +278,25 @@ void CRecordCreator::CreateArcWidgets(const QString &qsName)
                           new CPointWidget("End")});
 }
 
-void CRecordCreator::CreateNotSupportedWidgets(const QString &qsName)
+void CEMFRecordCreator::CreateNotSupportedWidgets(const QString &qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         ui->dataLayout->addWidget(new QLabel("На данный момент создание данной записи не поддерживается"));
 }
 
-void CRecordCreator::CreateExtTextOutWidget(const QString &qsName)
+void CEMFRecordCreator::CreateExtTextOutWidget(const QString &qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CExtTextOutWidget());
 }
 
-void CRecordCreator::CreatePolyTextOutWidget(const QString &qsName)
+void CEMFRecordCreator::CreatePolyTextOutWidget(const QString &qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CPolyTextOutWidget());
 }
 
-void CRecordCreator::CreateSetICMPRrofileWidget(const QString &qsName)
+void CEMFRecordCreator::CreateSetICMPRrofileWidget(const QString &qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidgets({new CFormWidget("dwFlags","0"),
@@ -305,7 +305,7 @@ void CRecordCreator::CreateSetICMPRrofileWidget(const QString &qsName)
                           new CFormWidget("Data",   "0")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_SETCOLORADJUSTMENT()
+void CEMFRecordCreator::Create_Widgets_EMR_SETCOLORADJUSTMENT()
 {
         this->setWindowTitle("Create: EMR_SETCOLORADJUSTMENT");
 
@@ -323,34 +323,34 @@ void CRecordCreator::Create_Widgets_EMR_SETCOLORADJUSTMENT()
                           new CFormWidget("RedGreenTint",    "0")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_SETWORLDTRANSFORM()
+void CEMFRecordCreator::Create_Widgets_EMR_SETWORLDTRANSFORM()
 {
         this->setWindowTitle("Create: EMR_SETWORLDTRANSFORM");
         AddSharedWidget(new CXFormWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_MODIFYWORLDTRANSFORM()
+void CEMFRecordCreator::Create_Widgets_EMR_MODIFYWORLDTRANSFORM()
 {
         this->setWindowTitle("Create: EMR_MODIFYWORLDTRANSFORM");
         AddSharedWidgets({new CXFormWidget(),
                           new CFormWidget("ModifyWorldTransformMode", "1")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_CREATEPEN()
+void CEMFRecordCreator::Create_Widgets_EMR_CREATEPEN()
 {
         this->setWindowTitle("Create: EMR_CREATEPEN");
         AddSharedWidgets({new CFormWidget("ihPen", "1"),
                           new CLogPenWidget()});
 }
 
-void CRecordCreator::Create_Widgets_EMR_CREATEBRUSHINDIRECT()
+void CEMFRecordCreator::Create_Widgets_EMR_CREATEBRUSHINDIRECT()
 {
         this->setWindowTitle("Create: EMR_CREATEBRUSHINDIRECT");
         AddSharedWidgets({new CFormWidget("ihBrush", "1"),
                           new CLogBrushExWidget()});
 }
 
-void CRecordCreator::Create_Widgets_EMR_ANGLEARC()
+void CEMFRecordCreator::Create_Widgets_EMR_ANGLEARC()
 {
         this->setWindowTitle("Create: EMR_ANGLEARC");
         AddSharedWidgets({new CPointWidget("Center"),
@@ -359,34 +359,34 @@ void CRecordCreator::Create_Widgets_EMR_ANGLEARC()
                           new CFormWidget("SweepAngle")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_ROUNDRECT()
+void CEMFRecordCreator::Create_Widgets_EMR_ROUNDRECT()
 {
         this->setWindowTitle("Create: EMR_ROUNDRECT");
         AddSharedWidgets({new CRectangleWidget("Box"),
                           new CSizeWidget("Corner")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_CREATEPALETTE()
+void CEMFRecordCreator::Create_Widgets_EMR_CREATEPALETTE()
 {
         this->setWindowTitle("Create: EMR_CREATEPALETTE");
         AddSharedWidgets({new CFormWidget("ihPal", "1"),
                           new CLogPaletteWidget()});
 }
 
-void CRecordCreator::Create_Widgets_EMR_SETPALETTEENTRIES()
+void CEMFRecordCreator::Create_Widgets_EMR_SETPALETTEENTRIES()
 {
         this->setWindowTitle("Create: EMR_SETPALETTEENTRIES");
         AddSharedWidget(new CPaletteEntriesWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_RESIZEPALETTE()
+void CEMFRecordCreator::Create_Widgets_EMR_RESIZEPALETTE()
 {
         this->setWindowTitle("Create: EMR_RESIZEPALETTE");
         AddSharedWidgets({new CFormWidget("ihPal", "1"),
                           new CFormWidget("NumberOfEntries", "1")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_EXTFLOODFILL()
+void CEMFRecordCreator::Create_Widgets_EMR_EXTFLOODFILL()
 {
         this->setWindowTitle("Create: EMR_EXTFLOODFILL");
         AddSharedWidgets({new CPointWidget("Start"),
@@ -394,89 +394,89 @@ void CRecordCreator::Create_Widgets_EMR_EXTFLOODFILL()
                           new CFormWidget("FloodFillMode", "1")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_LINETO()
+void CEMFRecordCreator::Create_Widgets_EMR_LINETO()
 {
         this->setWindowTitle("Create: EMR_LINETO");
         AddSharedWidget(new CPointWidget("Point"));
 }
 
-void CRecordCreator::Create_Widgets_EMR_FILLRGN()
+void CEMFRecordCreator::Create_Widgets_EMR_FILLRGN()
 {
         this->setWindowTitle("Create: EMR_FILLRGN");
         AddSharedWidget(new CFillRgnWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_FRAMERGN()
+void CEMFRecordCreator::Create_Widgets_EMR_FRAMERGN()
 {
         this->setWindowTitle("Create: EMR_FRAMERGN");
         AddSharedWidget(new CFrameRgnWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_INVERTRGN()
+void CEMFRecordCreator::Create_Widgets_EMR_INVERTRGN()
 {
         this->setWindowTitle("Create: EMR_INVERTRGN");
         AddSharedWidget(new CInvertRgnWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_PAINTRGN()
+void CEMFRecordCreator::Create_Widgets_EMR_PAINTRGN()
 {
         this->setWindowTitle("Create: EMR_PAINTRGN");
         AddSharedWidget(new CPaintRgnWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_EXTSELECTCLIPRGN()
+void CEMFRecordCreator::Create_Widgets_EMR_EXTSELECTCLIPRGN()
 {
         this->setWindowTitle("Create: EMR_EXTSELECTCLIPRGN");
         AddSharedWidget(new CExtSelectClipRgnWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_EXTCREATEFONTINDIRECTW()
+void CEMFRecordCreator::Create_Widgets_EMR_EXTCREATEFONTINDIRECTW()
 {
         this->setWindowTitle("Create: EMR_EXTCREATEFONTINDIRECTW");
         AddSharedWidgets({new CFormWidget("ihFonts", "1"),
                           new CLogFontExDvWidget()});
 }
 
-void CRecordCreator::Create_Widgets_EMR_CREATECOLORSPACE()
+void CEMFRecordCreator::Create_Widgets_EMR_CREATECOLORSPACE()
 {
         this->setWindowTitle("Create: EMR_CREATECOLORSPACE");
         AddSharedWidgets({new CFormWidget("ihCS", "1"),
                           new CLogColorSpaceWidget()});
 }
 
-void CRecordCreator::Create_Widgets_EMR_GLSBOUNDEDRECORD()
+void CEMFRecordCreator::Create_Widgets_EMR_GLSBOUNDEDRECORD()
 {
         this->setWindowTitle("Create: EMR_GLSBOUNDEDRECORD");
         AddSharedWidgets({new CRectangleWidget("Bounds"),
                           new CFormWidget("Data")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_PIXELFORMAT()
+void CEMFRecordCreator::Create_Widgets_EMR_PIXELFORMAT()
 {
         this->setWindowTitle("Create: EMR_PIXELFORMAT");
         AddSharedWidget(new CPixelFormatDescriptorWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_SMALLTEXTOUT()
+void CEMFRecordCreator::Create_Widgets_EMR_SMALLTEXTOUT()
 {
         this->setWindowTitle("Create: EMR_SMALLTEXTOUT");
         AddSharedWidget(new CSmallTextOutWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_FORCEUFIMAPPING()
+void CEMFRecordCreator::Create_Widgets_EMR_FORCEUFIMAPPING()
 {
         this->setWindowTitle("Create: EMR_FORCEUFIMAPPING");
         AddSharedWidget(new CUniversalFontIdWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_NAMEDESCAPE()
+void CEMFRecordCreator::Create_Widgets_EMR_NAMEDESCAPE()
 {
         this->setWindowTitle("Create: EMR_NAMEDESCAPE");
         AddSharedWidgets({new CFormWidget("DriverName"),
                           new CFormWidget("Data")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_COLORCORRECTPALETTE()
+void CEMFRecordCreator::Create_Widgets_EMR_COLORCORRECTPALETTE()
 {
         this->setWindowTitle("Create: EMR_COLORCORRECTPALETTE");
         AddSharedWidgets({new CFormWidget("ihPalette",  "0"),
@@ -484,26 +484,26 @@ void CRecordCreator::Create_Widgets_EMR_COLORCORRECTPALETTE()
                           new CFormWidget("nPalEntries","0")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_GRADIENTFILL()
+void CEMFRecordCreator::Create_Widgets_EMR_GRADIENTFILL()
 {
         this->setWindowTitle("Create: EMR_GRADIENTFILL");
         AddSharedWidget(new CGradientFillWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_SETLINKEDUFIS()
+void CEMFRecordCreator::Create_Widgets_EMR_SETLINKEDUFIS()
 {
         this->setWindowTitle("Create: Create: EMR_GRADIENTFILL");
         AddSharedWidget(new CLinkedUFISWidget());
 }
 
-void CRecordCreator::Create_Widgets_EMR_SETTEXTJUSTIFICATION()
+void CEMFRecordCreator::Create_Widgets_EMR_SETTEXTJUSTIFICATION()
 {
         this->setWindowTitle("Create: Create: EMR_SETTEXTJUSTIFICATION");
         AddSharedWidgets({new CFormWidget("nBreakExtra", "0"),
                           new CFormWidget("nBreakCount", "0")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_COLORMATCHTOTARGETW()
+void CEMFRecordCreator::Create_Widgets_EMR_COLORMATCHTOTARGETW()
 {
         this->setWindowTitle("Create: Create: EMR_SETTEXTJUSTIFICATION");
         AddSharedWidgets({new CFormWidget("dwAction", "1"),
@@ -512,7 +512,7 @@ void CRecordCreator::Create_Widgets_EMR_COLORMATCHTOTARGETW()
                           new CFormWidget("Data")});
 }
 
-void CRecordCreator::Create_Widgets_EMR_CREATECOLORSPACEW()
+void CEMFRecordCreator::Create_Widgets_EMR_CREATECOLORSPACEW()
 {
         this->setWindowTitle("Create: Create: EMR_SETTEXTJUSTIFICATION");
         AddSharedWidgets({new CFormWidget("ihCS",   "1"),
@@ -521,32 +521,32 @@ void CRecordCreator::Create_Widgets_EMR_CREATECOLORSPACEW()
                           new CFormWidget("Data")});
 }
 
-void CRecordCreator::CreatePolyWidgets(const QString& qsName)
+void CEMFRecordCreator::CreatePolyWidgets(const QString& qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidgets({new CRectangleWidget("Bounds"),
                           new CPolyWidget()});
 }
 
-void CRecordCreator::CreatePolyDrawWidgets(const QString &qsName)
+void CEMFRecordCreator::CreatePolyDrawWidgets(const QString &qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CPolyDrawWidget());
 }
 
-void CRecordCreator::CreateEXTEX(const QString& qsName)
+void CEMFRecordCreator::CreateEXTEX(const QString& qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CSizeWidget("Size"));
 }
 
-void CRecordCreator::CreateORGEX(const QString& qsName)
+void CEMFRecordCreator::CreateORGEX(const QString& qsName)
 {
         this->setWindowTitle(QString("Create: %1").arg(qsName));
         AddSharedWidget(new CPointWidget("Extent"));
 }
 
-void CRecordCreator::ConvertWidgets(const QString& qsName)
+void CEMFRecordCreator::ConvertWidgets(const QString& qsName)
 {
         if (qsName.isEmpty() || m_arWidgets.empty())
                 return;
@@ -559,7 +559,7 @@ void CRecordCreator::ConvertWidgets(const QString& qsName)
                 m_pNewItem->appendRows(pWidget->GetData());
 }
 
-void CRecordCreator::AddSharedWidget(CSharedWidget *pWidget)
+void CEMFRecordCreator::AddSharedWidget(CSharedWidget *pWidget)
 {
         if (NULL == pWidget)
                 return;
@@ -568,13 +568,13 @@ void CRecordCreator::AddSharedWidget(CSharedWidget *pWidget)
         m_arWidgets.push_back(pWidget);
 }
 
-void CRecordCreator::AddSharedWidgets(std::vector<CSharedWidget *> arWidgets)
+void CEMFRecordCreator::AddSharedWidgets(std::vector<CSharedWidget *> arWidgets)
 {
         for (CSharedWidget* pWidget : arWidgets)
                 AddSharedWidget(pWidget);
 }
 
-void CRecordCreator::ClearData()
+void CEMFRecordCreator::ClearData()
 {
         ClearLayout(ui->dataLayout);
 
@@ -582,7 +582,7 @@ void CRecordCreator::ClearData()
         m_arWidgets.clear();
 }
 
-void CRecordCreator::Close()
+void CEMFRecordCreator::Close()
 {
         if (NULL != m_pMainWindow)
                 m_pMainWindow->setEnabled(true);

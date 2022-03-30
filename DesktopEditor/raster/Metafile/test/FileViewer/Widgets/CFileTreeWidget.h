@@ -9,6 +9,7 @@
 
 #include "Common/CTextEditDelegate.h"
 #include "Common/CFileTreeView.h"
+#include "CFileViewWidget.h"
 
 namespace Widgets
 {
@@ -23,7 +24,6 @@ namespace Widgets
                 void Clear();
 
                 //Методы QTreeView
-                void setItemDelegate(CTextEditDelegate *pTextEditDelegate);
                 void expandAll();
                 void collapseAll();
                 QAbstractItemModel* model();
@@ -35,7 +35,7 @@ namespace Widgets
                 QHeaderView* header();
 
                 //Методы CFileTreeView
-                bool SetFile(const std::wstring& wsXmlFilePath);
+                bool SetFile(const std::wstring& wsXmlFilePath, FileType enType);
                 bool IsClearTree();
                 void SetMode(bool bLightMode);
                 void ClearTree();
@@ -49,22 +49,32 @@ namespace Widgets
             protected:
                 virtual void mouseReleaseEvent(QMouseEvent* event) override;
 
+            signals:
+                void signalUpdate();
+
             private slots:
                 void slotFindNext();
                 void slotFindPrev();
                 void slotRBClickedOnMetafileTree(QPoint oPoint);
-                void slotDeleteItem(CCustomItem *pDeletedItem);
+                void slotDeleteItem();
 
             private:
                 void InsertRecord(CCustomItem *pParentItem, unsigned int unRow, bool bAfterRecord = true);
 
-                QTextEdit *m_pFindText;
+                bool FindLower(CCustomItem* pCustomItem, QString qsFindValue);
+                bool FindUpperLower(CCustomItem* pCustomItem, QString qsFindValue);
+                bool FindUpperUpper(CCustomItem* pCustomItem, QString qsFindValue);
+
+                void SetSelectedItem(CCustomItem* pSelectedItem);
+
+                QTextEdit   *m_pFindText;
                 QPushButton *m_pFindNextButton;
                 QPushButton *m_pFindPrevButton;
 
                 CFileTreeView *m_pFileTreeView;
-                int m_nIndexSelectedItem;
-                QStandardItem *m_pSelectedItem;
+                CCustomItem   *m_pSelectedItem;
+
+                FileType m_enFileType;
         };
 }
 
