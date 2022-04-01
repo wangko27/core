@@ -27,13 +27,15 @@ namespace Widgets
                 QString GetXmlFilePath() const;
                 FileType GetFileType() const;
         public slots:
-                void slotUpdate();
+                void slotUpdate(const QString& qsXmlFilePath);
         private:
                 void InitLayout();
                 void Clear();
 
                 bool LoadSourceFile(const QString& qsFilePath);
                 bool LoadResultingFile(const QString& qsFilePath);
+
+                QString ConvertToMetafile(const QString& qsXmlFilePath);
 
                 QString         m_qsRasterFilePath;
                 QString         m_qsXmlFilePath;

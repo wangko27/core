@@ -63,9 +63,26 @@ namespace Widgets
                 return m_enFileType;
         }
 
-        void CFileViewWidget::slotUpdate()
+        void CFileViewWidget::slotUpdate(const QString& qsXmlFilePath)
         {
+                if (qsXmlFilePath.isEmpty())
+                        return;
 
+                m_qsXmlFilePath = qsXmlFilePath;
+
+                if (FileTypeMetafile == m_enFileType)
+                {
+                        QString qsMetafilePath = ConvertToMetafile(qsXmlFilePath);
+                        if (qsMetafilePath.isEmpty() || !LoadSourceFile(qsMetafilePath) || !LoadResultingFile(qsMetafilePath))
+                                Clear();
+
+                        NSFile::CFileBinary::Remove(qsMetafilePath.toStdWString());
+                }
+                else if (FileTypeSvg == m_enFileType)
+                {
+                        if (!LoadSourceFile(m_qsXmlFilePath) || !LoadResultingFile(m_qsXmlFilePath))
+                                Clear();
+                }
         }
 
         void CFileViewWidget::InitLayout()
@@ -178,5 +195,33 @@ namespace Widgets
                 m_oResultingFileScene.addPixmap(QPixmap::fromImage(QImage(oImage)));
 
                 return true;
+        }
+
+        QString CFileViewWidget::ConvertToMetafile(const QString &qsXmlFilePath)
+        {
+                if (qsXmlFilePath.isEmpty())
+                        return "";
+
+                CApplicationFontsWorker oWorker;
+                oWorker.m_sDirectory = NSFile::GetProcessDirectory() + L"/fonts_cache";
+                oWorker.m_bIsNeedThumbnails = false;
+
+                if (!NSDirectory::Exists(oWorker.m_sDirectory))
+                        NSDirectory::CreateDirectory(oWorker.m_sDirectory);
+
+                NSFonts::IApplicationFonts* pFonts = oWorker.Check();
+
+                MetaFile::IMetaFile* pMetafile = MetaFile::Create(pFonts);
+                if (!pMetafile->LoadFromXmlFile(qsXmlFilePath.toStdWString().c_str()))
+                        return "";
+
+                std::wstring wsPathToEmfFile = NSFile::GetProcessDirectory() + L"/Temp.emf";
+
+                pMetafile->ConvertToEmf(wsPathToEmfFile.c_str());
+
+                pMetafile->Release();
+                pFonts->Release();
+
+                return QString::fromStdWString(wsPathToEmfFile);
         }
 }

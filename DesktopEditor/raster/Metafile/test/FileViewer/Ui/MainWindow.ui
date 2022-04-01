@@ -40,6 +40,7 @@
      <string>File</string>
     </property>
     <addaction name="actionChoose_File"/>
+    <addaction name="actionSave_as"/>
     <addaction name="actionStatistics"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -62,6 +63,14 @@
    </property>
    <property name="text">
     <string>Statistics</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save as ...</string>
    </property>
   </action>
  </widget>

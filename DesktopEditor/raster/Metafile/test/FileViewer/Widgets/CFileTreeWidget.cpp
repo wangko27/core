@@ -6,8 +6,8 @@
 #include "CRecordCreator.h"
 #include "RecordWidgets/Common.h"
 
-
 #include "CEditItemWidget.h"
+#include "../../../../common/Directory.h"
 
 namespace Widgets
 {
@@ -230,8 +230,11 @@ namespace Widgets
                 if (QDialog::Accepted == pEditItemWidget->exec())
                 {
                         pEditItemWidget->Update();
-                        SaveInXmlFile(L"Temp.xml");
-                        emit signalUpdate();
+
+                        QString qsXmlFilePath = QString::fromStdWString(NSFile::GetProcessDirectory() + L"\\Temp.xml");
+
+                        if (SaveInXmlFile(qsXmlFilePath.toStdWString()))
+                                emit signalUpdate(qsXmlFilePath);
                 }
         }
 
@@ -406,7 +409,10 @@ namespace Widgets
 
                         m_pSelectedItem = NULL;
 
-                        emit signalUpdate();
+                        QString qsXmlFilePath = QString::fromStdWString(NSFile::GetProcessDirectory() + L"/Temp.png");
+
+                        if (SaveInXmlFile(qsXmlFilePath.toStdWString()))
+                                emit signalUpdate(qsXmlFilePath);
                 }
         }
 
@@ -425,8 +431,10 @@ namespace Widgets
                         {
                                 pParentItem->insertRow(unRow + ((bAfterRecord) ? 0 : 1), pItem);
 
-                                if (SaveInXmlFile(L"Temp.xml"))
-                                        emit signalUpdate();
+                                QString qsXmlFilePath = QString::fromStdWString(NSFile::GetProcessDirectory() + L"/Temp.png");
+
+                                if (SaveInXmlFile(qsXmlFilePath.toStdWString()))
+                                        emit signalUpdate(qsXmlFilePath);
 
                 //                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
                 //                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))

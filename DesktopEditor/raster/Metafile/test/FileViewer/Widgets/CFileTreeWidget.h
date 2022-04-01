@@ -50,7 +50,7 @@ namespace Widgets
                 virtual void mouseReleaseEvent(QMouseEvent* event) override;
 
             signals:
-                void signalUpdate();
+                void signalUpdate(const QString& qsXmlFilePath);
 
             private slots:
                 void slotFindNext();

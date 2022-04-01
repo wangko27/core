@@ -25,10 +25,14 @@ private slots:
 
         void on_actionStatistics_triggered();
 
+        void on_actionSave_as_triggered();
+
 protected:
         void resizeEvent(QResizeEvent *pResizeEvent) override;
 
 private:
+        void ChangeActionActivity(bool bActivity);
+
         Ui::MainWindow *ui;
         Widgets::CFileViewWidget m_oFileViewWidget;
         Widgets::CFileTreeWidget m_oFileTreeWidget;

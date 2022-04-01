@@ -157,6 +157,13 @@ void CFileTreeView::WriteXmlNode(XmlUtils::CXmlWriter &oXmlWriter, CCustomItem *
         std::wstring wsValue            = pCustomItem->GetValue().toStdWString();
         ItemArguments arArguments       = pCustomItem->GetArguments();
 
+        if (wsValue.empty() && arArguments.empty() && 0 == unCountNodes)
+        {
+                oXmlWriter.WriteNodeBegin(wsName, true);
+                oXmlWriter.WriteNodeEnd(wsName, true, true);
+                return;
+        }
+
         oXmlWriter.WriteNodeBegin(wsName, !arArguments.empty());
 
         for (const ItemArgument& oArgiment : arArguments)
