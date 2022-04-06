@@ -435,10 +435,6 @@ namespace Widgets
 
                                 if (SaveInXmlFile(qsXmlFilePath.toStdWString()))
                                         emit signalUpdate(qsXmlFilePath);
-
-                //                if (m_pMainWindow->SaveInXmlFile(L"Temp.xml") &&
-                //                    m_pMainWindow->ConvertToEmf(L"Temp.xml"))
-                //                        m_pMainWindow->DisplayingFile(L"TempFile.emf", false);
                         }
                 }
                 else if (FileTypeSvg == m_enFileType)

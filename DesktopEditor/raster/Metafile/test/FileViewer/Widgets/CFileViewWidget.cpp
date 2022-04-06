@@ -1,6 +1,7 @@
 #include "CFileViewWidget.h"
 
 #include <QBoxLayout>
+#include <QFile>
 
 //Для отрисовки Svg средствами Qt
 #include <QGraphicsSvgItem>
@@ -58,6 +59,16 @@ namespace Widgets
                 return m_qsXmlFilePath;
         }
 
+        QString CFileViewWidget::GetRasterFilePath() const
+        {
+                return m_qsRasterFilePath;
+        }
+
+        QString CFileViewWidget::GetMetafilePath() const
+        {
+                return m_qsMetafilePath;
+        }
+
         FileType CFileViewWidget::GetFileType() const
         {
                 return m_enFileType;
@@ -72,11 +83,9 @@ namespace Widgets
 
                 if (FileTypeMetafile == m_enFileType)
                 {
-                        QString qsMetafilePath = ConvertToMetafile(qsXmlFilePath);
-                        if (qsMetafilePath.isEmpty() || !LoadSourceFile(qsMetafilePath) || !LoadResultingFile(qsMetafilePath))
+                        m_qsMetafilePath = ConvertToMetafile(qsXmlFilePath);
+                        if (m_qsMetafilePath.isEmpty() || !LoadSourceFile(m_qsMetafilePath) || !LoadResultingFile(m_qsMetafilePath))
                                 Clear();
-
-                        NSFile::CFileBinary::Remove(qsMetafilePath.toStdWString());
                 }
                 else if (FileTypeSvg == m_enFileType)
                 {
@@ -105,8 +114,9 @@ namespace Widgets
 
         void CFileViewWidget::Clear()
         {
-                NSFile::CFileBinary::Remove(m_qsRasterFilePath.toStdWString());
-                NSFile::CFileBinary::Remove(m_qsXmlFilePath.toStdWString());
+                QFile::remove(m_qsMetafilePath);
+                QFile::remove(m_qsRasterFilePath);
+                QFile::remove(m_qsXmlFilePath);
 
                 m_oSourceFileScene.clear();
                 m_oResultingFileScene.clear();

@@ -78,10 +78,33 @@ void MainWindow::on_actionStatistics_triggered()
 
 void MainWindow::on_actionSave_as_triggered()
 {
-        QString qsFilter = "*Raster files (*.png)";
-        QString qsFilePath = QFileDialog::getSaveFileName(this, "Save file", QDir::currentPath(), "Emf files (*.emf);;Wmf files (*.wmf);;Svg files (*.svg);;Raster files (*.png);;Xml files (*.xml)", &qsFilter);
+        QString qsFilters = "Raster files (*.png);;Xml files (*.xml)";
 
-        if ("Xml files (*.xml)" == qsFilter)
+        if (Widgets::FileTypeMetafile == m_oFileViewWidget.GetFileType())
+                qsFilters += ";;Emf files (*.emf)";
+
+        QString qsSelectedFilter = "Raster files (*.png)";
+        QString qsFilePath = QFileDialog::getSaveFileName(this, "Save file", QDir::currentPath(), qsFilters, &qsSelectedFilter);
+
+        if ("Xml files (*.xml)" == qsSelectedFilter)
                 m_oFileTreeWidget.SaveInXmlFile(qsFilePath.toStdWString());
+        else if ("Raster files (*.png)" == qsSelectedFilter)
+        {
+                QString qsRasterFilePath = m_oFileViewWidget.GetRasterFilePath();
+                if (!qsRasterFilePath.isEmpty())
+                {
+                        QFile::remove(qsFilePath);
+                        QFile::copy(qsRasterFilePath, qsFilePath);
+                }
+        }
+        else if ("Emf files (*.emf)" == qsSelectedFilter)
+        {
+                QString qsMetafilePath = m_oFileViewWidget.GetMetafilePath();
+                if (!qsMetafilePath.isEmpty())
+                {
+                        QFile::remove(qsFilePath);
+                        QFile::copy(qsMetafilePath, qsFilePath);
+                }
+        }
 }
 

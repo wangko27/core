@@ -25,6 +25,9 @@ namespace Widgets
                 bool LoadFile(const QString& qsFilePath);
 
                 QString GetXmlFilePath() const;
+                QString GetRasterFilePath() const;
+                QString GetMetafilePath() const;
+
                 FileType GetFileType() const;
         public slots:
                 void slotUpdate(const QString& qsXmlFilePath);
@@ -37,6 +40,7 @@ namespace Widgets
 
                 QString ConvertToMetafile(const QString& qsXmlFilePath);
 
+                QString         m_qsMetafilePath;
                 QString         m_qsRasterFilePath;
                 QString         m_qsXmlFilePath;
                 QGraphicsScene  m_oSourceFileScene;
