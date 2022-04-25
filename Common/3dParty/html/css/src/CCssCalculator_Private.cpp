@@ -40,7 +40,7 @@ bool operator<(const std::vector<NSCSS::CNode> &arLeftSelectors, const std::vect
 
 namespace NSCSS
 {
-    CCssCalculator_Private::CCssCalculator_Private() : m_nDpi(96), m_nCountNodes(0), m_UnitMeasure(Default), m_mStatictics(NULL), m_sEncoding(L"UTF-8"){}
+    CCssCalculator_Private::CCssCalculator_Private() : m_nDpi(96), m_nCountNodes(0), m_UnitMeasure(Default), m_sEncoding(L"UTF-8"){}
 
     CCssCalculator_Private::~CCssCalculator_Private()
     {
@@ -56,9 +56,6 @@ namespace NSCSS
             delete iter->second;
 
         m_mUsedStyles.clear();
-
-        if (NULL != m_mStatictics)
-            delete m_mStatictics;
     }
 
     inline void CCssCalculator_Private::GetOutputData(KatanaOutput *oOutput)
@@ -319,7 +316,7 @@ namespace NSCSS
             if (oItem != m_mUsedStyles.end())
                 return *oItem->second;
         }
-        else if (NULL == m_mStatictics || m_mStatictics->empty())
+        else if (m_mStatictics.empty())
         {
             CCompiledStyle oStyle;
             oStyle.SetDpi(m_nDpi);
@@ -433,7 +430,7 @@ namespace NSCSS
 
                 if (oFindId != m_mData.end())
                 {
-                    std::map<StatistickElement, unsigned int>::const_iterator oFindCountId = m_mStatictics->find(StatistickElement{StatistickElement::IsId, sId});
+                    std::map<StatistickElement, unsigned int>::const_iterator oFindCountId = m_mStatictics.find(StatistickElement{StatistickElement::IsId, sId});
 
                     if (((bIsSettings && oFindCountId->second < MaxNumberRepetitions) ||
                         (!bIsSettings && oFindCountId->second >= MaxNumberRepetitions)))
@@ -505,12 +502,16 @@ namespace NSCSS
             for (const CElement* oElement : arFindElements)
                 pStyle->AddStyle(oElement->GetStyle(), i + 1);
 
-            std::map<StatistickElement, unsigned int>::const_iterator oFindCountStyle = m_mStatictics->find(StatistickElement{StatistickElement::IsStyle, arSelectors[i].m_sStyle});
+            std::map<StatistickElement, unsigned int>::const_iterator oFindCountStyle = m_mStatictics.find(StatistickElement{StatistickElement::IsStyle, arSelectors[i].m_sStyle});
 
-            if(oFindCountStyle != m_mStatictics->end())
+            if(oFindCountStyle != m_mStatictics.end())
+            {
                 if ((bIsSettings && oFindCountStyle->second <  MaxNumberRepetitions) ||
                    (!bIsSettings && oFindCountStyle->second >= MaxNumberRepetitions))
                     pStyle->AddStyle(arSelectors[i].m_sStyle, i + 1,  true);
+            }
+            else
+                pStyle->AddStyle(arSelectors[i].m_sStyle, i + 1,  true);
 
         }
 
@@ -558,10 +559,7 @@ namespace NSCSS
 
     void CCssCalculator_Private::SetBodyTree(const CTree &oTree)
     {
-        if (NULL == m_mStatictics)
-            m_mStatictics = new std::map<StatistickElement, unsigned int>();
-
-        CTree::CountingNumberRepetitions(oTree, *m_mStatictics);
+        CTree::CountingNumberRepetitions(oTree, m_mStatictics);
     }
 
     void CCssCalculator_Private::SetSizeSourceWindow(const CSizeWindow &oSizeWindow)

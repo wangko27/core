@@ -16,8 +16,12 @@ namespace NSCSS
 {
     typedef std::map<std::wstring, std::wstring>::const_iterator styles_iterator;
 
-    CCompiledStyle::CCompiledStyle() : m_nDpi(96), m_UnitMeasure(Default){}
+        CCompiledStyle::CCompiledStyle() : m_nDpi(96), m_UnitMeasure(Default){}
 
+        CCompiledStyle::CCompiledStyle(const std::map<std::wstring, std::wstring> &mStyle)
+        {
+                AddStyle(mStyle, 0);
+        }
 
     CCompiledStyle::CCompiledStyle(const CCompiledStyle& oStyle) :
         m_arParentsStyles(oStyle.m_arParentsStyles), m_sId(oStyle.m_sId),
@@ -889,6 +893,7 @@ namespace NSCSS
                     break;
                 }
                 // BACKGROUND
+                CASE(L"fill"):
                 CASE(L"background-color"):
                 {
                     const size_t unPositionImp = pPropertie.second.find(L"!i");
@@ -1160,7 +1165,7 @@ namespace NSCSS
                 }
         }
 
-        inline int CCompiledStyle::ConvertPx(const std::wstring& sValue) const
+        int CCompiledStyle::ConvertPx(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1188,33 +1193,33 @@ namespace NSCSS
             return 0;
         }
 
-        inline int CCompiledStyle::ConvertPxToCm(const float& dValue) const
+        int CCompiledStyle::ConvertPxToCm(const float& dValue) const
         {
             return static_cast<int>(dValue / m_nDpi * 2.54f);
         }
 
-        inline int CCompiledStyle::ConvertPxToIn(const float& dValue) const
+        int CCompiledStyle::ConvertPxToIn(const float& dValue) const
         {
             return static_cast<int>(1.0f / static_cast<float>(m_nDpi) * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPxToMm(const float& dValue) const
+        int CCompiledStyle::ConvertPxToMm(const float& dValue) const
         {
             return static_cast<int>(dValue / static_cast<float>(m_nDpi) * 25.4f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPxToPc(const float& dValue) const
+        int CCompiledStyle::ConvertPxToPc(const float& dValue) const
         {
 
             return static_cast<int>(0.16667f / static_cast<float>(m_nDpi) * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPxToPt(const float& dValue) const
+        int CCompiledStyle::ConvertPxToPt(const float& dValue) const
         {
             return static_cast<int>(72.0f /  static_cast<float>(m_nDpi) * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertCm(const std::wstring& sValue) const
+        int CCompiledStyle::ConvertCm(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1242,32 +1247,32 @@ namespace NSCSS
             return 0;
         }
 
-        inline int CCompiledStyle::ConvertCmToIn(const float& dValue) const
+        int CCompiledStyle::ConvertCmToIn(const float& dValue) const
         {
             return static_cast<int>(dValue / 2.54f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertCmToMm(const float& dValue) const
+        int CCompiledStyle::ConvertCmToMm(const float& dValue) const
         {
             return static_cast<int>(dValue * 10.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertCmToPc(const float& dValue) const
+        int CCompiledStyle::ConvertCmToPc(const float& dValue) const
         {
             return static_cast<int>(2.36f * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertCmToPt(const float& dValue) const
+        int CCompiledStyle::ConvertCmToPt(const float& dValue) const
         {
             return static_cast<int>(28.35f * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertCmToPx(const float& dValue) const
+        int CCompiledStyle::ConvertCmToPx(const float& dValue) const
         {
             return static_cast<int>(static_cast<float>(m_nDpi) / 2.54f * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertMm(const std::wstring& sValue) const
+        int CCompiledStyle::ConvertMm(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1294,35 +1299,35 @@ namespace NSCSS
             return 0;
         }
 
-        inline int CCompiledStyle::ConvertMmToIn(const float& dValue) const
+        int CCompiledStyle::ConvertMmToIn(const float& dValue) const
         {
             return static_cast<int>(dValue / 25.4f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertMmToCm(const float& dValue) const
+        int CCompiledStyle::ConvertMmToCm(const float& dValue) const
         {
 
             return static_cast<int>(dValue / 10.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertMmToPc(const float& dValue) const
+        int CCompiledStyle::ConvertMmToPc(const float& dValue) const
         {
             return static_cast<int>(2.8346f * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertMmToPt(const float& dValue) const
+        int CCompiledStyle::ConvertMmToPt(const float& dValue) const
         {
 
             return static_cast<int>(0.23262f * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertMmToPx(const float& dValue) const
+        int CCompiledStyle::ConvertMmToPx(const float& dValue) const
         {
 
             return static_cast<int>(static_cast<float>(m_nDpi) / 25.4f * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertIn(const std::wstring& sValue) const
+        int CCompiledStyle::ConvertIn(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1349,35 +1354,35 @@ namespace NSCSS
             return 0;
         }
 
-        inline int CCompiledStyle::ConvertInToMm(const float& dValue) const
+        int CCompiledStyle::ConvertInToMm(const float& dValue) const
         {
             return static_cast<int>(dValue * 25.4f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertInToCm(const float& dValue) const
+        int CCompiledStyle::ConvertInToCm(const float& dValue) const
         {
 
             return static_cast<int>(dValue * 2.54f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertInToPc(const float& dValue) const
+        int CCompiledStyle::ConvertInToPc(const float& dValue) const
         {
 
             return static_cast<int>(dValue / 72.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertInToPt(const float& dValue) const
+        int CCompiledStyle::ConvertInToPt(const float& dValue) const
         {
 
             return static_cast<int>(dValue / 6.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertInToPx(const float& dValue) const
+        int CCompiledStyle::ConvertInToPx(const float& dValue) const
         {
             return static_cast<short int>(dValue * static_cast<float>(m_nDpi) + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPt(const std::wstring& sValue) const
+        int CCompiledStyle::ConvertPt(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1405,32 +1410,32 @@ namespace NSCSS
             return 0;
         }
 
-        inline int CCompiledStyle::ConvertPtToIn(const float& dValue) const
+        int CCompiledStyle::ConvertPtToIn(const float& dValue) const
         {
             return static_cast<int>(dValue / 72.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPtToCm(const float& dValue) const
+        int CCompiledStyle::ConvertPtToCm(const float& dValue) const
         {
             return static_cast<int>(dValue * 0.03528f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPtToPc(const float& dValue) const
+        int CCompiledStyle::ConvertPtToPc(const float& dValue) const
         {
             return static_cast<int>(dValue / 12.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPtToMm(const float& dValue) const
+        int CCompiledStyle::ConvertPtToMm(const float& dValue) const
         {
             return static_cast<int>(dValue * 0.3528f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPtToPx(const float& dValue) const
+        int CCompiledStyle::ConvertPtToPx(const float& dValue) const
         {
             return static_cast<short int>(static_cast<float>(m_nDpi) / 72.0f * dValue + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPc(const std::wstring& sValue) const
+        int CCompiledStyle::ConvertPc(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1458,27 +1463,27 @@ namespace NSCSS
             return 0;
         }
 
-        inline int CCompiledStyle::ConvertPcToIn(const float& dValue) const
+        int CCompiledStyle::ConvertPcToIn(const float& dValue) const
         {
             return static_cast<int>(dValue / 6.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPcToCm(const float& dValue) const
+        int CCompiledStyle::ConvertPcToCm(const float& dValue) const
         {
             return static_cast<int>(dValue * 0.423f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPcToPt(const float& dValue) const
+        int CCompiledStyle::ConvertPcToPt(const float& dValue) const
         {
             return static_cast<int>(dValue * 12.0f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPcToMm(const float& dValue) const
+        int CCompiledStyle::ConvertPcToMm(const float& dValue) const
         {
             return static_cast<int>(dValue * 4.23f + 0.5f);
         }
 
-        inline int CCompiledStyle::ConvertPcToPx(const float& dValue) const
+        int CCompiledStyle::ConvertPcToPx(const float& dValue) const
         {
             return static_cast<int>(static_cast<float>(m_nDpi) / 6.0f * dValue + 0.5f);
         }

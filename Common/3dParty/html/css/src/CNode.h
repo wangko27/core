@@ -14,7 +14,8 @@ namespace NSCSS
         std::wstring m_sStyle; // Стиль тэга
 
         CNode(){};
-        CNode(std::wstring sName, std::wstring sClass, std::wstring sId) : m_sName(sName), m_sClass(sClass), m_sId(sId){};
+        CNode(std::wstring sName, std::wstring sClass, std::wstring sId, std::wstring sStyle = L"")
+                : m_sName(sName), m_sClass(sClass), m_sId(sId), m_sStyle(sStyle) {};
 
         bool Empty() const
         {

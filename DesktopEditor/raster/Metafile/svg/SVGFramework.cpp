@@ -155,6 +155,7 @@ namespace SVG
 		ADD_COLOR("pnow", 255, 250, 250); 
 		ADD_COLOR("ppringgreen",  0, 255, 127); 
 		ADD_COLOR("pteelblue",  70, 130, 180); 
+		ADD_COLOR("royalblue", 0, 128, 0);
 		ADD_COLOR("tan", 210, 180, 140); 
 		ADD_COLOR("teal",  0, 128, 128); 
 		ADD_COLOR("thistle", 216, 191, 216); 
@@ -485,7 +486,7 @@ namespace SVG
         double dpiX = 0.0;	m_render->get_DpiX ( &dpiX );
         double dpiY = 0.0;	m_render->get_DpiY ( &dpiY );
 
-		if ( 0.0 == dpiX || 0.0 == dpiY )
+//		if ( 0.0 == dpiX || 0.0 == dpiY) // Уменьшается размер текста
 		{
 			double dWidthMM = 0; m_render->get_Width(&dWidthMM);
 			double dHeightMM = 0; m_render->get_Height(&dHeightMM);
@@ -497,8 +498,12 @@ namespace SVG
 			dpiY = dHeightPix / dHeightMM * 25.4;
 		}
 
-		double dFontSize	=	element->GetFontStyle ().DoubleAttribute ( FontSize ) * 72.0f / dpiX * element->m_oUs.GetFactorFontSize ();
-		if (dFontSize <= 0.0)	//	for geicha_6000px.svg 
+		double dFontSize = element->GetFontStyle ().DoubleAttribute ( FontSize ) * 72.0f / dpiX * element->m_oUs.GetFactorFontSize ();
+
+		if (dFontSize <= 0.0)
+			dFontSize = 22;
+
+		if (dFontSize <= 0.0 && false)	//	for geicha_6000px.svg
 		{
 			if (clipOn)
                 DoClip (element->GetClip(), false);
@@ -508,11 +513,6 @@ namespace SVG
 
         std::wstring bsFontFamily	=	element->GetFontStyle().GetAttribute(FontFamily);
         std::wstring bsText			=	element->GetText();
-
-		float X			=	0.0;
-		float Y			=	0.0;
-		float BoundX	=	0.0;
-		float BoundY	=	0.0;
 
 		m_render->put_FontSize ( dFontSize );
 		m_render->put_FontName ( bsFontFamily );
@@ -530,12 +530,14 @@ namespace SVG
 
 		m_render->put_FontStyle (Style);
 
-        fontManager->LoadFontByName ( bsFontFamily, dFontSize, 0, 72.0, 72.0 );
+	fontManager->LoadFontByName ( bsFontFamily, dFontSize, Style, dpiX, dpiY );
 		fontManager->LoadString2 ( bsText, 0, 0 );
         TBBox bBox = fontManager->MeasureString();
 
-        bBox.fMinX *= (25.4f / 72.0f);
-        bBox.fMinY *= (25.4f / 72.0f);
+//        bBox.fMinX *= (25.4f / 72.0f);
+//        bBox.fMinY *= (25.4f / 72.0f);
+
+        int nOffset = bBox.fMaxY - bBox.fMinY;
 
         float m_fLineSpacing = fontManager->GetLineHeight();
         float m_fEmHeight = fontManager->GetUnitsPerEm();
@@ -548,19 +550,31 @@ namespace SVG
 		//OffSetY *= dpiY / 72.0;
 		OffSetY *= (25.4 / 72.0);
 
+		element->m_unWidth = bBox.fMaxX - bBox.fMinX;
+
+		//Устанавливаем цвет текста
+		m_render->put_BrushType(c_BrushTypeSolid);
+		m_render->put_BrushColor1(element->GetStyle().LongAttribute(FillColor));
+		m_render->put_BrushAlpha1(255);
+
+		double dX = element->m_Pos.X;
+
+		if (NULL != element->m_pLastText)
+			dX = element->m_pLastText->GetEndX();
+
 		if ( FontTextAnchorStart == element->GetFontStyle().LongAttribute(FontTextAnchor))
 		{
-            m_render->CommandDrawText ( bsText, element->m_Pos.X, element->m_Pos.Y, bBox.fMinX, OffSetY );
+	    m_render->CommandDrawText ( bsText, dX, element->m_Pos.Y - nOffset, bBox.fMinX, OffSetY );
 		}
 
 		if ( FontTextAnchorMiddle == element->GetFontStyle().LongAttribute(FontTextAnchor))
 		{
-            m_render->CommandDrawText ( bsText, element->m_Pos.X - bBox.fMinX * 0.5, element->m_Pos.Y, bBox.fMinX, OffSetY );
+	    m_render->CommandDrawText ( bsText, dX - bBox.fMinX * 0.5, element->m_Pos.Y, bBox.fMinX, OffSetY );
 		}
 
 		if (FontTextAnchorEnd == element->GetFontStyle ().LongAttribute(FontTextAnchor))
 		{
-            m_render->CommandDrawText ( bsText, element->m_Pos.X - bBox.fMinX, element->m_Pos.Y, bBox.fMinX, OffSetY );
+	    m_render->CommandDrawText ( bsText, dX - bBox.fMinX, element->m_Pos.Y, bBox.fMinX, OffSetY );
 		}
 
         DoClip (element->GetClip(), false);
@@ -673,7 +687,7 @@ namespace SVG
 
                     const std::wstring& css	=	pE->ClassName();
 					Style oStyle			=	pE->GetStyle();						
-					oStyle					=	ComposeStyles(pE, oStyle);
+//					oStyle					=	ComposeStyles(pE, oStyle);
 
 					Matrix mat = parentTransform;						
 					mat *= Matrix::TranslateTransform(off.X, off.Y);
@@ -685,14 +699,14 @@ namespace SVG
 
 					switch (code)
 					{
-					case ERectangle:			DrawRectangle(static_cast<Rectangle*>(pE),oStyle,css);								continue;	break;
+					case ERectangle:			DrawRectangle(static_cast<Rectangle*>(pE),oStyle);								continue;	break;
 					case ELine:					DrawLine(static_cast<Line*>(pE),oStyle,css);										continue;	break;
 					case EEllipse:				DrawEllipse(static_cast<Ellipse*>(pE),oStyle,css);									continue;	break;
 					case ECircle:				DrawCircle(static_cast<Circle*>(pE),oStyle,css);									continue;	break;
 					case EPath:					DrawPath(static_cast<Path*>(pE),oStyle,css);										continue;	break;
 					case EPolyline:				DrawPolyline(static_cast<Polyline*>(pE),oStyle,css);								continue;	break;
 					case EPolygon:				DrawPolygon(static_cast<Polygon*>(pE),oStyle,css);									continue;	break;
-					case EText:					DrawText(static_cast<Text*>(pE),oStyle,css);										continue;	break;
+					case EText:					DrawText(static_cast<Text*>(pE),oStyle);										continue;	break;
 					case EImage:				DrawImage(static_cast<Image*>(pE),oStyle,css);										continue;	break;
 					case EUse:					DrawUse(static_cast<Use*>(pE),oStyle,css);											continue;	break;
 					case EGraphicsContainer:	DrawGraphicsContainer(static_cast<GraphicsContainer*>(pE), parentTransform, off);	continue;	break;

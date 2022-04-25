@@ -18,6 +18,9 @@ graphics_dynamic_library {
 CORE_ROOT_DIR = $$PWD/../../..
 PWD_ROOT_DIR = $$PWD
 include(../../../Common/base.pri)
+
+include($$CORE_ROOT_DIR/Common/3dParty/html/css/CssCalculator.pri)
+
 include(freetype.pri)
 
 ADD_DEPENDENCY(UnicodeConverter, kernel)

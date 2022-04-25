@@ -77,7 +77,7 @@ namespace NSCSS
         NSConstValues::NSCssProperties::Border      m_pBorder;
 
         CCompiledStyle();
-        explicit CCompiledStyle(const std::map<std::wstring, std::wstring>& mStyle);
+        CCompiledStyle(const std::map<std::wstring, std::wstring>& mStyle);
         CCompiledStyle(const CCompiledStyle& oStyle);
 
         ~CCompiledStyle();

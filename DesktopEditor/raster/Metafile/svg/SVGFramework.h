@@ -17,8 +17,12 @@
 #define	M_PI		3.14159265358979323846
 #endif
 
+#include <map>
 #include <math.h>
 #include <algorithm>
+
+#include "../../Common/3dParty/html/css/src/CCssCalculator.h"
+#include "../../Common/3dParty/html/css/src/xhtml/CDocumentStyle.h"
 
 //------------------------------------------------------------------------------------------------------
 
@@ -504,6 +508,197 @@ public:
 
 namespace SVG
 {
+        class DrawElement;
+
+        typedef std::map<std::wstring, std::wstring>  NodeSettings;
+        typedef std::pair<std::wstring, std::wstring> NodeSetting;
+
+        class CSvgTreeElement
+        {
+            public:
+                CSvgTreeElement(XmlUtils::CXmlNode& oXml) : m_pParent(NULL), m_pDrawElement(NULL)
+                {
+                        AddData(oXml);
+                }
+
+                ~CSvgTreeElement()
+                {
+                        for (CSvgTreeElement* pChildren : m_arChildrens)
+                                RELEASEOBJECT(pChildren)
+
+                        m_arChildrens.clear();
+                }
+
+                void AddData(XmlUtils::CXmlNode& oXml)
+                {
+                        m_sName   = oXml.GetName();
+                        m_sClass  = oXml.GetAttribute(L"class");
+                        m_sId     = oXml.GetAttribute(L"id");
+                        m_sStyle  = oXml.GetAttribute(L"style");
+
+                        std::wstring wsFillValue = oXml.GetAttribute(L"fill");
+                        if (!wsFillValue.empty())
+                                m_mSettings.insert(NodeSetting(L"fill", wsFillValue));
+                }
+
+                void SetDrawElement(DrawElement* pDrawElement)
+                {
+                        m_pDrawElement = pDrawElement;
+                }
+
+                DrawElement* GetDrawElement() const
+                {
+                        return m_pDrawElement;
+                }
+
+                std::wstring GetSettingsW() const
+                {
+                        std::wstring wsSettings;
+
+                        for (const NodeSetting& oIter : m_mSettings)
+                                wsSettings += oIter.first + L':' + oIter.second + L';';
+
+                        return wsSettings;
+                }
+
+                void AddChildren(CSvgTreeElement* pChildren)
+                {
+                        if (NULL != pChildren)
+                        {
+                                pChildren->SetParent(this);
+                                m_arChildrens.push_back(pChildren);
+                        }
+                }
+
+                CSvgTreeElement* GetChildren(int nIndex) const
+                {
+                        if (m_arChildrens.empty()) return NULL;
+
+                        if (nIndex >= 0 && nIndex < m_arChildrens.size())
+                                return m_arChildrens[nIndex];
+
+                        if (nIndex < 0 && nIndex >= -m_arChildrens.size())
+                                return m_arChildrens[m_arChildrens.size() + nIndex];
+
+                        return NULL;
+                }
+
+                CSvgTreeElement* GetLastChildren() const
+                {
+                        return GetChildren(-1);
+                }
+
+                std::vector<NSCSS::CNode> GetCssSelectors() const
+                {
+                        std::vector<NSCSS::CNode> arSelectors;
+
+                        CSvgTreeElement* pElement = m_pParent;
+
+                        arSelectors.push_back(GetCssNode());
+
+                        while (NULL != pElement)
+                        {
+                                arSelectors.insert(arSelectors.begin(), pElement->GetCssNode());
+                                pElement = pElement->GetParent();
+                        }
+
+                        return arSelectors;
+                }
+
+                CSvgTreeElement* GetParent() const
+                {
+                        return m_pParent;
+                }
+
+            private:
+
+                void SetParent(CSvgTreeElement* pParent)
+                {
+                        m_pParent = pParent;
+                }
+
+                NSCSS::CNode GetCssNode() const
+                {
+                        return NSCSS::CNode(m_sName, m_sClass, m_sId, m_sStyle);
+                }
+
+                std::wstring m_sName;       // Имя тэга
+                std::wstring m_sClass;      // Класс тэга
+                std::wstring m_sId;         // Id тэга
+                std::wstring m_sStyle;      // Стиль тэга
+                NodeSettings m_mSettings;   //Стилевые надстройки
+
+                std::vector<CSvgTreeElement*> m_arChildrens;
+
+                CSvgTreeElement* m_pParent;
+
+                DrawElement *m_pDrawElement;
+        };
+
+        class CSvgTree
+        {
+            public:
+                CSvgTree() : m_pHead(NULL), m_pSelectedElement(NULL), m_unCurrentLayer(0)
+                {
+                }
+                ~CSvgTree()
+                {
+                        RELEASEOBJECT(m_pHead)
+                }
+
+                void AddElement(CSvgTreeElement* pElement)
+                {
+                        if (NULL != pElement)
+                        {
+                                if (m_pHead == NULL)
+                                        m_pHead = pElement;
+                                else if (NULL != m_pSelectedElement)
+                                        m_pSelectedElement->AddChildren(pElement);
+
+                                m_pSelectedElement = pElement;
+
+                        }
+                }
+
+                void AddLayer()
+                {
+                        ++m_unCurrentLayer;
+                }
+
+                void RemoveLayer()
+                {
+                        if (0 != m_unCurrentLayer)
+                        {
+                                --m_unCurrentLayer;
+
+                                m_pSelectedElement = m_pSelectedElement->GetParent();
+                        }
+                }
+
+                CSvgTreeElement* GetSelectedElement() const
+                {
+                        return m_pSelectedElement;
+                }
+
+                CSvgTreeElement* GetParentLayer() const
+                {
+                        if (0 == m_unCurrentLayer || NULL == m_pSelectedElement)
+                                return NULL;
+
+                        return m_pSelectedElement->GetParent();
+                }
+
+            private:
+
+                CSvgTreeElement *m_pHead;
+                CSvgTreeElement *m_pSelectedElement;
+
+                unsigned int m_unCurrentLayer;
+        };
+}
+
+namespace SVG
+{
 class StrUtils
 {
 public:
@@ -521,16 +716,79 @@ public:
 
         return std::stol(value);
     }
+    static inline std::wstring ConverteAbsoluteValue(const std::wstring& wsValue)
+    {
+            std::map<std::wstring, std::wstring> arAbsoluteValues = {{L"xx-small", L"9px"},  {L"x-small", L"10px"},
+                                                                     {L"small",    L"13px"}, {L"medium",  L"16px"},
+                                                                     {L"large",    L"18px"}, {L"x-large", L"24px"},
+                                                                     {L"xx-large", L"32px"}};
+
+            std::map<std::wstring, std::wstring>::iterator oFoundElement = arAbsoluteValues.find(wsValue);
+
+            if (arAbsoluteValues.end() != oFoundElement)
+                    return oFoundElement->second;
+
+            return std::wstring();
+    };
+
+    static inline bool IsEscapeSymbol(wchar_t wcSymbol)
+    {
+        switch (wcSymbol)
+        {
+            case '\n':
+            case '\t':
+            case '\v':
+            case '\b':
+            case '\r':
+            case '\0':
+            case '\f':
+            case '\a':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    static inline std::wstring Normalize(const std::wstring& wsValue)
+    {
+            std::wstring wsNewValue = wsValue;
+
+            size_t unPosEscape, unPosSymbol;
+
+            while (true)
+            {
+                unPosEscape = wsNewValue.find(L'\n');
+
+                if (std::wstring::npos == unPosEscape)
+                        break;
+
+                unPosSymbol = wsNewValue.find_first_not_of(L"\n ", unPosEscape);
+
+                if (std::wstring::npos == unPosSymbol)
+                {
+                        wsNewValue.substr(0, unPosEscape);
+                        break;
+                }
+
+                wsNewValue.erase(unPosEscape, unPosSymbol - unPosEscape - 1);
+            }
+
+            while (iswspace(wsNewValue.back()))
+                wsNewValue.pop_back();
+
+            return wsNewValue;
+    }
+
     static inline double DoubleValue(const std::wstring& value)
     {
         size_t len = value.length(); const wchar_t* buf = value.c_str();
         if (0 == len) return 0;
         for (size_t i = 0; i < len; ++i)
         {
-            if (isdigit(buf[i]) || (buf[i] == L'.') || (buf[i] == L',') || (buf[i] == L'-') || (buf[i] == 'e'))
+            if (iswdigit(buf[i]) || (buf[i] == L'.') || (buf[i] == L',') || (buf[i] == L'-') || (buf[i] == 'e'))
                 continue;
 
-            return std::stol(value.substr(0, i));
+            return std::stod(value.substr(0, i));
         }
 
         bool bNeedZero = false;
@@ -1251,7 +1509,7 @@ public:
     }
 
     template <typename T>
-    inline T Convert(T value, Metrics m, int direction)		//	'1' - x	; '-1' - y
+    inline T Convert(T value, Metrics m, int direction)	const	//	'1' - x	; '-1' - y
     {
         if (!m_bIsValid)
             return value;
@@ -1358,6 +1616,7 @@ private:
     double	m_dOffSetX;
     double	m_dOffSetY;
 };
+
 class Style	//	map добавим по мере надобности
 {
 public:
@@ -1421,6 +1680,7 @@ public:
                     continue;
 
                 std::wstring Value = Source.substr(Ind, Source.length() - Ind);
+                std::transform(Value.begin(), Value.end(), Value.begin(), tolower);
 
                 if (L"opacity" == attr)
                 {
@@ -1442,7 +1702,6 @@ public:
                             }
                         }
                     }
-
                     m_nFillColor		=	ColorParser::ColorFromString(Value);
                     m_bHaveFillColor	=	true;
                 }
@@ -1517,6 +1776,56 @@ public:
 
         return true;
     }
+    inline bool SetStyle(const NSCSS::CCompiledStyle& oCompiledStyle, bool bResetStyle, UnitSystem& oUnitSystem, IRefStorage* pStorage, const ColorTable& Table = ColorTable())
+    {
+        std::wstring wsStyle;
+
+        if (!oCompiledStyle.m_pBackground.GetColorHex().empty())
+        {
+                std::wstring FillColor = L'#' + oCompiledStyle.m_pBackground.GetColorHex();
+
+                std::wstring sUrlRef = StrUtils::UrlRefValue(FillColor);
+                if (!sUrlRef.empty())
+                {
+                    ISvgRef* pDef = NULL;
+                    if (pStorage->GetRef(sUrlRef, pDef))
+                    {
+                        m_pRefFill = pDef;
+                    }
+                }
+                else
+                {
+                    m_nFillColor = ColorParser::ColorFromString(FillColor);
+                    m_bHaveFillColor	=	true;
+                }
+        }
+
+        return true;
+    }
+
+    inline bool SetStyle (CSvgTreeElement* pElement, bool bResetStyle, UnitSystem& oUnitSystem, IRefStorage* pStorage, const ColorTable& Table = ColorTable())
+    {
+        if (bResetStyle)
+                SetDefault ();
+
+        if (NULL == pElement) return false;
+
+        std::vector<CSvgTreeElement*> arPath;
+
+        CSvgTreeElement* pSelectedElement = pElement;
+
+        while (NULL != pSelectedElement)
+        {
+                arPath.push_back(pSelectedElement);
+                pSelectedElement = pSelectedElement->GetParent();
+        }
+
+        for (std::vector<CSvgTreeElement*>::const_reverse_iterator oIter = arPath.rbegin(); oIter < arPath.rend(); ++oIter)
+                UpdateStyle((*oIter)->GetSettingsW(), oUnitSystem, pStorage, Table);
+
+        return true;
+    }
+
     inline bool SetStyle (XmlUtils::CXmlNode& oXmlNode, bool bResetStyle, UnitSystem& oUnitSystem, IRefStorage* pStorage, const ColorTable& Table = ColorTable())
     {
         if (bResetStyle)
@@ -1721,12 +2030,21 @@ public:
     {
         return SetStyle(Styles, false, oUnitSystem, pStorage, Table);
     }
+    inline bool UpdateStyle (const NSCSS::CCompiledStyle& oCompiledStyle, UnitSystem& oUnitSystem, IRefStorage* pStorage, const ColorTable& Table = ColorTable())
+    {
+        return SetStyle(oCompiledStyle, false, oUnitSystem, pStorage, Table);
+    }
     inline void Combine(const Style& oSrc)
     {
         // opacity
         if(oSrc.ValidAttribute(Opacity))
         {
             m_nOpacity *= oSrc.m_nOpacity;
+        }
+
+        if (m_nFillColor < 0 && oSrc.ValidAttribute(FillColor))
+        {
+            m_nFillColor = oSrc.m_nFillColor;
         }
     }
 
@@ -1861,6 +2179,8 @@ private:
 
     bool		m_IsCSS;
 };
+
+
 class StyleStack
 {
 public:
@@ -1941,9 +2261,17 @@ public:
     }
     bool SetStyle(XmlUtils::CXmlNode& oXml)
     {
-        m_nFontSize			=	StrUtils::DoubleValue(oXml.GetAttribute(L"font-size"));
-        m_nFontMetrics		=	StrUtils::GetMetrics(oXml.GetAttribute(L"font-size"));
-        m_FontFamily		=	oXml.GetAttributeOrValue(L"font-family", L"Arial");
+        std::wstring wsFontAttribute = oXml.GetAttribute(L"font-size");
+
+        if (!wsFontAttribute.empty())
+        {
+                if (iswalpha(wsFontAttribute[0]))
+                        wsFontAttribute = StrUtils::ConverteAbsoluteValue(wsFontAttribute);
+
+                m_nFontSize             =	StrUtils::DoubleValue(oXml.GetAttribute(L"font-size"));
+                m_nFontMetrics		=	StrUtils::GetMetrics(oXml.GetAttribute(L"font-size"));
+                m_FontFamily		=	oXml.GetAttributeOrValue(L"font-family", L"Arial");
+        }
 
         m_nFontTextAnchor	=	FontTextAnchorStart;
 
@@ -2171,7 +2499,7 @@ public:
                 break;
 
             std::wstring src = source.substr(begin, right);
-            std::wstring::size_type left = src.find(L"{", left);
+            std::wstring::size_type left = src.find(L"{");
             if (std::wstring::npos == left)
                 break;
 
@@ -3424,6 +3752,11 @@ namespace SVG
 class DrawElement : public ISvgRef
 {
 public:
+    DrawElement()
+    {
+
+    }
+
     virtual ~DrawElement()
     {
 
@@ -3497,6 +3830,7 @@ protected:
     Matrix	m_oTransform;
     std::wstring m_className;
 };
+
 class Line : public DrawElement
 {
 public:
@@ -3819,6 +4153,7 @@ public:
     {
         m_nodeType	=	EText;
         m_pClip		=	NULL;
+        m_pLastText     =       NULL;
     }
 
     virtual bool FromXml ( XmlUtils::CXmlNode& oXmlNode, UnitSystem& oUnitSystem )
@@ -3827,12 +4162,16 @@ public:
 
         m_oUs	=	oUnitSystem;
 
-        m_Pos.X			=	DoubleValue ( oXmlNode, L"x", oUnitSystem, c_dirHorizontal );
-        m_Pos.Y			=	DoubleValue ( oXmlNode, L"y", oUnitSystem, c_dirVertical );
+        if (!oXmlNode.GetAttribute(L"x").empty())
+                m_Pos.X = DoubleValue ( oXmlNode, L"x", oUnitSystem, c_dirHorizontal );
+
+        if (!oXmlNode.GetAttribute(L"y").empty())
+                m_Pos.Y = DoubleValue ( oXmlNode, L"y", oUnitSystem, c_dirVertical );
+
         m_Shift.X		=	DoubleValue ( oXmlNode, L"dx", oUnitSystem, c_dirHorizontal );
         m_Shift.Y		=	DoubleValue ( oXmlNode, L"dy", oUnitSystem, c_dirVertical );
 
-        m_Source		=	oXmlNode.GetText ();
+        m_Source		=	StrUtils::Normalize(oXmlNode.GetText ());
 
         // стиль может задаваться вообще где то вверху по дереву
         m_oFontStyle.UpdateStyle ( oXmlNode );
@@ -3847,6 +4186,18 @@ public:
         return true;
     }
 
+    virtual double GetEndX() const
+    {
+            double dX = m_unWidth;
+
+            if (NULL != m_pLastText)
+                    dX += m_pLastText->GetEndX();
+            else
+                    dX += m_Pos.X;
+
+            return dX;
+    }
+
     inline const FontStyle& GetFontStyle ()
     {
         return m_oFontStyle;
@@ -3855,8 +4206,7 @@ public:
     {
         return m_Source;
     }
-
-public:
+    public:
 
     Point		m_Pos;
     Point		m_Shift;
@@ -3865,6 +4215,9 @@ public:
     FontStyle	m_oFontStyle;
 
     UnitSystem	m_oUs;
+
+    Text *m_pLastText;
+    unsigned int m_unWidth;
 };
 class Image : public DrawElement
 {
@@ -4176,7 +4529,7 @@ public:
         else if (L"path" == sName)		return new Path();
         else if (L"polyline" == sName)	return new Polyline();
         else if (L"polygon" == sName)	return new Polygon();
-        else if (L"text" == sName)		return new Text();
+        else if (L"text" == sName || L"tspan" == sName)		return new Text();
         else if (L"image" == sName)		return new Image();
         else if (L"use" == sName)		return new Use();
 
@@ -4489,9 +4842,7 @@ protected:
             {
                 Text* pText = static_cast<Text*>(element);
                 if (pText)
-                {
                     pText->m_oFontStyle = oFontStyle;
-                }
             }
 
             std::wstring transform = oXml.GetAttribute(L"transform");
@@ -5164,6 +5515,7 @@ public:
         m_CSS			=	NULL;
 
         m_bIsExternalManager = false;
+
     }
     ~Painter()
     {
@@ -5655,6 +6007,16 @@ public:
     {
         std::wstring strXmlNode = oXml.GetName();			// ATLTRACE ( L"%s\n", strXmlNode);
 
+        //<text> в <text> не должен отображаться
+        if (strXmlNode == L"text" && NULL != m_oTree.GetSelectedElement() &&
+            NULL != m_oTree.GetSelectedElement()->GetDrawElement() && EText ==m_oTree.GetSelectedElement()->GetDrawElement()->nodeType())
+                return true;
+
+        CSvgTreeElement *pElement = new CSvgTreeElement(oXml);
+
+        m_oTree.AddElement(pElement);
+        m_oTree.AddLayer();
+
         bool ExploreLayer = false;
         bool readInnerNodes = true;
 
@@ -5693,20 +6055,6 @@ public:
             SetDefaultSizes ();
 
             m_oStyle.SetDefault();
-            m_oStyle.ClearFillColor();
-            std::wstring css = oXml.GetAttribute(L"style");
-            if (!css.empty())
-            {
-                m_oFontStyle.SetStyle (css, true);
-                m_oStyle.SetStyle (css, true, m_oUs, m_model, m_oColTable);
-            }
-            else
-            {
-                m_oFontStyle.UpdateStyle (oXml);
-                m_oStyle.UpdateStyle (oXml, m_oUs, m_model, m_oColTable);
-            }
-
-            m_oStyles.Push(m_oStyle);
         }
         else if (L"g" == strXmlNode)
         {
@@ -5747,24 +6095,6 @@ public:
                 m_transforms.Push(Matrix());
             }
 
-            // m_oStyle.SetDefault ();
-
-            m_oStyle.ClearFillColor();
-
-            std::wstring css = oXml.GetAttribute(L"style");
-            if (!css.empty())
-            {
-                m_oFontStyle.SetStyle (css, true);
-                m_oStyle.SetStyle (css, true, m_oUs, m_model, m_oColTable);
-            }
-            else
-            {
-                m_oFontStyle.UpdateStyle (oXml);
-                m_oStyle.UpdateStyle (oXml, m_oUs, m_model, m_oColTable);
-            }
-
-            m_oStyles.Push(m_oStyle);
-
             m_transforms.Pop();
 
             GraphicsContainer* pContainer = new GraphicsContainer();
@@ -5802,11 +6132,12 @@ public:
             if (L"text/css" == oXml.GetAttribute(L"type"))
             {
                 m_CSS.Read(oXml, m_oUs, m_model, m_oColTable);
+                m_oCssCalculator.AddStyles(oXml.GetText());
             }
         }
         else
         {
-            LoadElement(oXml);
+            LoadElement(oXml, false);
 
             if (L"clipPath" == strXmlNode && !m_bDefinesLayer)
                 return true;
@@ -5843,6 +6174,8 @@ public:
                 }
             }
         }
+
+        m_oTree.RemoveLayer();
 
         if (ExploreLayer)
         {
@@ -5949,7 +6282,7 @@ private:
                 return true;
             }
 
-            Create (oXml);
+            Create (oXml, true);
         }
 
         return false;
@@ -5976,29 +6309,54 @@ private:
 
             FontStyle oFontStyle	=	m_oFontStyle;
 
-            std::wstring css = oXmlNode.GetAttribute(L"style");
-            if (!css.empty())
-            {
-                oStyle.UpdateStyle(oXmlNode, m_oUs, m_model, m_oColTable);
-                oStyle.SetStyle(css, false, m_oUs, m_model, m_oColTable);
-                oFontStyle.SetStyle(css, false);
-            }
-            else
-            {
-                oStyle.UpdateStyle(oXmlNode, m_oUs, m_model, m_oColTable);
-                oFontStyle.UpdateStyle(oXmlNode);
-            }
+            if (NULL != m_oTree.GetSelectedElement())
+                    m_oTree.GetSelectedElement()->SetDrawElement(element);
 
             m_oUs.SetFontSizeForEM(oFontStyle.DoubleAttribute(FontSize));
 
-            oStyle.Combine(oTopStyle);
+            if (NULL != m_oTree.GetSelectedElement())
+            {
+                std::vector<NSCSS::CNode> arSelectors = m_oTree.GetSelectedElement()->GetCssSelectors();
+
+                NSCSS::CCompiledStyle oSettingsCompiledStyle = m_oCssCalculator.GetCompiledStyle(arSelectors, true);
+                NSCSS::CCompiledStyle oCompiledStyle = m_oCssCalculator.GetCompiledStyle(arSelectors);
+
+                NSCSS::CCompiledStyle::StyleEquation(oCompiledStyle, oSettingsCompiledStyle);
+
+                oStyle.SetStyle(m_oTree.GetSelectedElement(), true, m_oUs, m_model, m_oColTable);
+                oStyle.UpdateStyle(oCompiledStyle, m_oUs, m_model, m_oColTable);
+            }
+
             element->SetStyle(oStyle);
 
             if (EText == element->nodeType())
             {
                 Text* pText = static_cast<Text*>(element);
+
                 if (pText)
+                {
                     pText->m_oFontStyle	= oFontStyle;
+
+                    CSvgTreeElement* pParent = m_oTree.GetParentLayer();
+
+                    if (NULL != pParent && NULL != pParent->GetDrawElement() && EText == pParent->GetDrawElement()->nodeType())
+                    {
+                        CSvgTreeElement* pPrevElement = pParent->GetChildren(-2);
+
+                        Text* pParentText = NULL;
+
+                        if (NULL == pPrevElement)
+                                pParentText = static_cast<Text*>(pParent->GetDrawElement());
+                        else if (EText == pPrevElement->GetDrawElement()->nodeType())
+                                pParentText = static_cast<Text*>(pPrevElement->GetDrawElement());
+
+                        if (NULL != pParentText)
+                        {
+                                pText->m_Pos = pParentText->m_Pos;
+                                pText->m_pLastText = pParentText;
+                        }
+                    }
+                }
             }
 
             std::wstring transforms = oXmlNode.GetAttribute(L"transform");
@@ -6103,5 +6461,8 @@ private:
 
     std::wstring	m_sWorkingDirectory;
     CStyleCSS		m_CSS;
+
+    NSCSS::CCssCalculator m_oCssCalculator;
+    CSvgTree m_oTree;
 };
 }

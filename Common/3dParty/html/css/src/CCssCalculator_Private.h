@@ -21,7 +21,7 @@ namespace NSCSS
 
         std::map<std::wstring, CElement*> m_mData;
 
-        std::map<StatistickElement, unsigned int> *m_mStatictics; // Количество повторений свойств id и style у селекторов
+        std::map<StatistickElement, unsigned int> m_mStatictics; // Количество повторений свойств id и style у селекторов
 
         std::map<std::vector<CNode>, CCompiledStyle*> m_mUsedStyles;
 
