@@ -704,7 +704,20 @@ namespace NSCSS
                             continue;
 
                         arLevels[6] = unLevel;
-                        this->sFamily = L'"' + *iWord + L'"';
+
+                        if (L"sans-serif" == *iWord)
+                                this->sFamily = L"\"Arial\"";
+                        else if (L"serif" == *iWord)
+                                this->sFamily = L"\"Times New Roman\"";
+                        else if (L"monospace" == *iWord)
+                                this->sFamily = L"\"Courier\"";
+                        else if (L"cursive" == *iWord)
+                                this->sFamily = L"\"Comic Sans\"";
+                        else if (L"fantasy" == *iWord)
+                                this->sFamily = L"\"Impact\"";
+                        else
+                                this->sFamily = L'"' + *iWord + L'"';
+
                         return;
                     }
 
@@ -931,6 +944,14 @@ namespace NSCSS
                         return std::wstring();
 
                     return std::to_wstring(static_cast<unsigned short>(fSize + 0.5f));
+                }
+
+                std::wstring GetSizeWD() const
+                {
+                    if (fSize == fNoneValue)
+                        return std::wstring();
+
+                    return std::to_wstring(fSize);
                 }
 
                 std::wstring GetFamily() const
@@ -1456,7 +1477,7 @@ namespace NSCSS
                     if (sAlign.empty() || (bImportants[1] && !bHardMode))
                         return;
 
-                    if (sAlign == L"center")
+                    if (sAlign == L"center" || sAlign == L"middle")
                     {
                         arLevels[1] = unLevel;
                         enAlign = NSConstValues::NSCssProperties::TextAlign::center;
@@ -1645,6 +1666,7 @@ namespace NSCSS
                 float fWidth;
                 std::wstring sStyle;
                 std::wstring sColor; //HEX color
+                double dOpacity;
 
                 std::vector<bool> bImportants;
                 std::vector<unsigned int> arLevels;
@@ -1656,13 +1678,14 @@ namespace NSCSS
                 BorderSide() : fWidth(fNoneValue),
                                sStyle(L"auto"),
                                sColor(L"auto"),
-                               bImportants({false, false, false}),
-                               arLevels({0, 0, 0}),
+                               dOpacity(fNoneValue),
+                               bImportants({false, false, false, false}),
+                               arLevels({0, 0, 0, 0}),
                                bBlock(false){}
 
                 void ClearImportants()
                 {
-                    bImportants = {false, false, false};
+                    bImportants = {false, false, false, false};
                 }
 
                 void Block()
@@ -1738,12 +1761,12 @@ namespace NSCSS
 
                 bool Empty() const
                 {
-                    return fWidth  <= 0;
+                    return fWidth  <= 0 && L"auto" == sColor && L"auto" == sStyle && fNoneValue == dOpacity;
                 }
 
                 void SetWidthWithoutChecking(const float& fWidth, const unsigned int& unLevel, const bool &bHardMode = false)
                 {
-                    if (bImportants[0] && !bHardMode)
+                    if (fNoneValue == this->fWidth || (bImportants[0] && !bHardMode))
                     {
                         arLevels[0] = unLevel;
                         this->fWidth = fWidth;
@@ -1752,7 +1775,7 @@ namespace NSCSS
 
                 void SetStyleWithoutChecking(const std::wstring& sStyle, const unsigned int& unLevel, const bool &bHardMode = false)
                 {
-                    if (bImportants[1] && !bHardMode)
+                    if (L"auto" == this->sStyle || (bImportants[1] && !bHardMode))
                     {
                         arLevels[1] = unLevel;
                         this->sStyle = sStyle;
@@ -1761,7 +1784,7 @@ namespace NSCSS
 
                 void SetColorWithoutChecking(const std::wstring& sColor, const unsigned int& unLevel, const bool &bHardMode = false)
                 {
-                    if (bImportants[2] && !bHardMode)
+                    if (L"auto" == this->sColor || (bImportants[2] && !bHardMode))
                     {
                         arLevels[2] = unLevel;
                         this->sColor = sColor;
@@ -1881,12 +1904,21 @@ namespace NSCSS
                     }
                 }
 
+                void SetOpacity(double dValue, const unsigned int& unLevel, const bool &bHardMode = false)
+                {
+                        if (bImportants[2] && !bHardMode)
+                            return;
+
+                        arLevels[3] = unLevel;
+                        dOpacity = dValue;
+                }
+
                 void SetImportantAll(const bool &bImportant)
                 {
                     if (bImportant)
-                        bImportants = {true, true, true};
+                        bImportants = {true, true, true, true};
                     else
-                        bImportants = {false, false, false};
+                        bImportants = {false, false, false, false};
                 }
 
                 void SetImportantWidth(const bool &bImportant)
@@ -1945,6 +1977,14 @@ namespace NSCSS
                 float GetWidth() const
                 {
                     return fWidth;
+                }
+
+                double GetOpacity() const
+                {
+                    if (fNoneValue == dOpacity)
+                            return 1;
+
+                    return dOpacity;
                 }
 
                 void SetAllLevels(const unsigned int& unLevel)
@@ -2226,6 +2266,22 @@ namespace NSCSS
                     }
                 }
 
+                void SetOpacity(const std::wstring& sValue, const unsigned int& unLevel, const bool &bHardMode = false)
+                {
+                        if (sValue.empty() || !iswdigit(sValue[0]))
+                                return;
+
+                        double dValue = wcstod(sValue.c_str(), NULL);
+
+                        if (0 <= dValue && dValue <= 1)
+                        {
+                                oLeft.  SetOpacity(dValue, unLevel, bHardMode);
+                                oTop.   SetOpacity(dValue, unLevel, bHardMode);
+                                oRight. SetOpacity(dValue, unLevel, bHardMode);
+                                oBottom.SetOpacity(dValue, unLevel, bHardMode);
+                        }
+                }
+
                 void SetImportantWidth(const bool& bImportant)
                 {
                     oTop.SetImportantWidth(bImportant);
@@ -2370,6 +2426,10 @@ namespace NSCSS
                     oLeft.SetColor(sValue, unLevel, bHardMode);
                 }
 
+                double GetOpacity() const
+                {
+                        return oTop.GetOpacity();
+                }
 
                 std::wstring GetWidthTopSideW() const
                 {
@@ -2456,17 +2516,20 @@ namespace NSCSS
             class Background
             {
                 std::wstring sColor;
+                double dOpacity;
+                double dFillOpacity;
                 bool bInBorder;
 
                 std::vector<bool> bImportants;
                 std::vector<unsigned int> arLevels;
             public:
 
-                Background() : bImportants({false}), arLevels({0}), bInBorder(false){}
+                Background() : dOpacity(fNoneValue), dFillOpacity(fNoneValue), bInBorder(false),
+                               bImportants({false, false, false}), arLevels({0, 0, 0}){}
 
                 void ClearImportants()
                 {
-                    bImportants = {false};
+                    bImportants = {false, false, false};
                 }
 
                 void InBorder()
@@ -2481,8 +2544,14 @@ namespace NSCSS
 
                 Background operator+=(const Background& oBackground)
                 {
-                    if (oBackground.sColor.empty())
+                    if (!oBackground.sColor.empty() && !oBackground.bImportants[0] && (oBackground.arLevels[0] >= arLevels[0]))
                         sColor = oBackground.sColor;
+
+                    if (oBackground.dOpacity != fNoneValue && !oBackground.bImportants[1] && (oBackground.arLevels[1] >= arLevels[1]))
+                        dOpacity = oBackground.dOpacity;
+
+                    if (oBackground.dFillOpacity != fNoneValue && !oBackground.bImportants[2] && (oBackground.arLevels[2] >= arLevels[2]))
+                        dFillOpacity = oBackground.dFillOpacity;
 
                     return *this;
                 }
@@ -2504,12 +2573,12 @@ namespace NSCSS
 
                 bool operator==(const Background& oBackground) const
                 {
-                    return sColor == oBackground.sColor;
+                    return sColor == oBackground.sColor && dOpacity == oBackground.dOpacity && dFillOpacity == oBackground.dFillOpacity;
                 }
 
                 bool Empty() const
                 {
-                    return sColor.empty();
+                    return sColor.empty() && fNoneValue == dOpacity && fNoneValue == dFillOpacity;
                 }
 
                 void SetColor(const std::wstring &sValue, const unsigned int& unLevel, const bool &bHardMode = false)
@@ -2562,6 +2631,46 @@ namespace NSCSS
                     }
                 }
 
+                void SetOpacity(const std::wstring& wsOpacity, const unsigned int& unLevel, const bool &bHardMode = false)
+                {
+                        if (wsOpacity.empty() || (bImportants[1] && !bHardMode) || !iswdigit(wsOpacity[0]))
+                            return;
+
+                        double dValue = wcstod(wsOpacity.c_str(), NULL);
+
+                        if (0 <= dValue && dValue <= 1)
+                        {
+                                arLevels[1] = unLevel;
+                                dOpacity = dValue;
+                        }
+                }
+
+                void SetOpacity(double dNewOpacity)
+                {
+                        if (0 <= dNewOpacity && dNewOpacity >= 1)
+                                dOpacity = dNewOpacity;
+                }
+
+                void SetFillOpacity(const std::wstring& wsFillOpacity, const unsigned int& unLevel, const bool &bHardMode = false)
+                {
+                        if (wsFillOpacity.empty() || (bImportants[2] && !bHardMode) || !iswdigit(wsFillOpacity[0]))
+                            return;
+
+                        double dValue = wcstod(wsFillOpacity.c_str(), NULL);
+
+                        if (0 <= dValue && dValue <= 1)
+                        {
+                                arLevels[2] = unLevel;
+                                dOpacity = dValue;
+                        }
+                }
+
+                void SetFillOpacity(double dNewFillOpacity)
+                {
+                        if (0 <= dNewFillOpacity && dNewFillOpacity >= 1)
+                                dOpacity = dNewFillOpacity;
+                }
+
                 void SetBackground(const std::wstring& sBackground, const unsigned int& unLevel, const bool &bHardMode = false)
                 {
                     if (sBackground.empty() || (bImportants[0] && !bHardMode))
@@ -2580,14 +2689,24 @@ namespace NSCSS
                 void SetImportantAll(const bool &bImportant)
                 {
                     if (bImportant)
-                        bImportants = {true};
+                        bImportants = {true, true, true};
                     else
-                        bImportants = {false};
+                        bImportants = {false, false, false};
                 }
 
                 void SetImportantBackground(const bool &bImportant)
                 {
                     bImportants[0] = bImportant;
+                }
+
+                void SetImportantOpacity(const bool& bImportant)
+                {
+                    bImportants[1] = bImportant;
+                }
+
+                void SetImportantFillOpacity(const bool& bImportant)
+                {
+                    bImportants[2] = bImportant;
                 }
 
                 std::wstring GetColorHex() const
@@ -2622,6 +2741,22 @@ namespace NSCSS
                             return oIter->first;
 
                     return L"";
+                }
+
+                double GetOpacity() const
+                {
+                        if (fNoneValue == dOpacity)
+                                return 1.0f;
+
+                        return dOpacity;
+                }
+
+                double GetFillOpacity() const
+                {
+                        if (fNoneValue == dFillOpacity)
+                                return 1;
+
+                        return dFillOpacity;
                 }
             };
         }

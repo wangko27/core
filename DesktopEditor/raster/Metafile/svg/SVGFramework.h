@@ -364,10 +364,14 @@ enum Attribute
 
     TLinearGradient,
 
+    TextDecorationUnderline,
+    TextDecorationLineThrough,
+
     ///
 
     None
 };
+
 enum Metrics
 {
     EM,
@@ -536,9 +540,14 @@ namespace SVG
                         m_sId     = oXml.GetAttribute(L"id");
                         m_sStyle  = oXml.GetAttribute(L"style");
 
-                        std::wstring wsFillValue = oXml.GetAttribute(L"fill");
-                        if (!wsFillValue.empty())
-                                m_mSettings.insert(NodeSetting(L"fill", wsFillValue));
+                        std::wstring wsValue;
+
+                        for (std::wstring wsAttribute : {L"fill", L"stroke"})
+                        {
+                                wsValue = oXml.GetAttribute(wsAttribute);
+                                if (!wsValue.empty())
+                                        m_mSettings.insert(NodeSetting(wsAttribute, wsValue));
+                        }
                 }
 
                 void SetDrawElement(DrawElement* pDrawElement)
@@ -549,6 +558,16 @@ namespace SVG
                 DrawElement* GetDrawElement() const
                 {
                         return m_pDrawElement;
+                }
+
+                NodeSettings GetSettings() const
+                {
+                        return m_mSettings;
+                }
+
+                std::wstring GetStyle() const
+                {
+                        return m_sStyle;
                 }
 
                 std::wstring GetSettingsW() const
@@ -626,7 +645,7 @@ namespace SVG
                 std::wstring m_sClass;      // Класс тэга
                 std::wstring m_sId;         // Id тэга
                 std::wstring m_sStyle;      // Стиль тэга
-                NodeSettings m_mSettings;   //Стилевые надстройки
+                NodeSettings m_mSettings;   // Стилевые надстройки
 
                 std::vector<CSvgTreeElement*> m_arChildrens;
 
@@ -773,7 +792,7 @@ public:
                 wsNewValue.erase(unPosEscape, unPosSymbol - unPosEscape - 1);
             }
 
-            while (iswspace(wsNewValue.back()))
+            while (!wsNewValue.empty() && iswspace(wsNewValue.back()))
                 wsNewValue.pop_back();
 
             return wsNewValue;
@@ -1617,6 +1636,184 @@ private:
     double	m_dOffSetY;
 };
 
+typedef NSCSS::NSConstValues::NSCssProperties::Font CSvgFontStyle;
+
+#define SVG_RGB(r, g, b) ((unsigned int)( ( (unsigned char)(r) )| ( ( (unsigned char)(g) ) << 8 ) | ( ( (unsigned char)(b) ) << 16 ) ) )
+
+class CSvgStyle
+{
+public:
+        CSvgStyle() {};
+        ~CSvgStyle() {};
+
+        inline void SetStyle (CSvgTreeElement* pElement)
+        {
+            if (NULL == pElement) return;
+
+            std::vector<CSvgTreeElement*> arPath;
+
+            CSvgTreeElement* pSelectedElement = pElement;
+
+            while (NULL != pSelectedElement)
+            {
+                    arPath.insert(arPath.begin(), pSelectedElement);
+                    pSelectedElement = pSelectedElement->GetParent();
+            }
+
+            for (unsigned int unIndex = 0; unIndex < arPath.size(); ++unIndex)
+                UpdateStyle(arPath[unIndex]->GetSettings(), unIndex + 1);
+        }
+
+        inline void UpdateStyle(CSvgTreeElement* pElement)
+        {
+                if (NULL == pElement) return;
+
+                m_oCompiledStyle.AddStyle(pElement->GetStyle(), 0);
+        }
+
+        inline void UpdateStyle(const NodeSettings& mSettings, unsigned int unLevel = 0)
+        {
+                for (const NodeSetting& oSetting : mSettings)
+                {
+                        if (L"fill" == oSetting.first)
+                                m_oCompiledStyle.m_pBackground.SetColor(oSetting.second, unLevel);
+                        else if (L"opacity" == oSetting.first)
+                                m_oCompiledStyle.m_pBackground.SetOpacity(oSetting.second, unLevel);
+                        else if (L"text-decoration" == oSetting.first)
+                                m_oCompiledStyle.m_pText.SetDecoration(oSetting.second, unLevel);
+                        else if (L"stroke" == oSetting.first)
+                                m_oCompiledStyle.m_pBorder.SetColor(oSetting.second, unLevel);
+                        else if (L"stroke-opacity" == oSetting.first)
+                                m_oCompiledStyle.m_pBorder.SetOpacity(oSetting.second, unLevel);
+                }
+        }
+
+        inline void UpdateStyle(const NSCSS::CCompiledStyle& oStyle)
+        {
+                m_oCompiledStyle += oStyle;
+        }
+
+        //Font
+        inline double GetFontSize() const
+        {
+                std::wstring wsFontSize = m_oCompiledStyle.m_pFont.GetSizeWD();
+
+                if (wsFontSize.empty())
+                        return 0.0f;
+
+                return wcstod(wsFontSize.c_str(), NULL);
+        }
+
+        inline std::wstring GetFontFamily() const
+        {
+                std::wstring sFontFamily = m_oCompiledStyle.m_pFont.GetFamily();
+
+                if (sFontFamily.empty())
+                        return L"Times New Roman";
+
+                return sFontFamily.substr(1, sFontFamily.size() - 2);
+        }
+
+        inline Attribute GetFontWeight() const
+        {
+                if (L"bold" == m_oCompiledStyle.m_pFont.GetWeight())
+                        return FontWeightBold;
+
+                return FontWeightNormal;
+        }
+
+        inline Attribute GetFontStyle() const
+        {
+                if (L"italic" == m_oCompiledStyle.m_pFont.GetStyle())
+                        return FontStyleItalic;
+
+                return FontStyleNormal;
+        }
+
+        //Text
+        inline Attribute GetTextUnderline() const
+        {
+                std::wstring wsTextDecoration = m_oCompiledStyle.m_pText.GetDecoration();
+
+                if (L"single" == wsTextDecoration)
+                        return TextDecorationUnderline;
+                else if (L"line-through" == wsTextDecoration)
+                        return TextDecorationLineThrough;
+
+                return None;
+        }
+
+        inline Attribute GetTextAnchor() const
+        {
+                std::wstring wsTextAnchor = m_oCompiledStyle.m_pText.GetAlign();
+
+                if (L"center" == wsTextAnchor)
+                        return FontTextAnchorMiddle;
+                else if (L"right" == wsTextAnchor)
+                        return FontTextAnchorEnd;
+
+                return FontTextAnchorStart;
+        }
+
+        //Fill
+        inline int GetFillColor() const
+        {
+                std::wstring wsFillColor = m_oCompiledStyle.m_pBackground.GetColorHex();
+                return ColorParser::ColorFromHexString(L'#' + ((wsFillColor.empty() ? L"000000" : wsFillColor)));
+        }
+
+        inline double GetOpacity() const
+        {
+                return m_oCompiledStyle.m_pBackground.GetOpacity();
+        }
+
+        inline double GetFillOpacity() const
+        {
+                return m_oCompiledStyle.m_pBackground.GetFillOpacity();
+        }
+
+        //Stroke
+        inline double GetStrokeOpacity() const
+        {
+                return m_oCompiledStyle.m_pBorder.GetOpacity();
+        }
+
+        inline int GetStrokeColor() const
+        {
+                std::wstring wsStrokeColor = m_oCompiledStyle.m_pBorder.GetColorTopSide();
+
+                if (L"auto" == wsStrokeColor)
+                        return 0;
+
+                return ColorParser::ColorFromHexString(L'#' + m_oCompiledStyle.m_pBorder.GetColorTopSide());
+        }
+
+        inline double GetStrokeWidth() const
+        {
+                std::wstring wsStrokeWidth = m_oCompiledStyle.m_pBorder.GetWidthTopSideW();
+
+                if (L"0" == wsStrokeWidth)
+                        return 1.0f;
+
+                return wcstod(wsStrokeWidth.c_str(), NULL);
+        }
+
+        CSvgStyle& operator=(const NSCSS::CCompiledStyle& oStyle)
+        {
+                m_oCompiledStyle = oStyle;
+                return *this;
+        }
+        CSvgStyle& operator+=(const NSCSS::CCompiledStyle& oStyle)
+        {
+                m_oCompiledStyle += oStyle;
+                return *this;
+        }
+private:
+        NSCSS::CCompiledStyle m_oCompiledStyle;
+};
+
+// Style
+/*
 class Style	//	map добавим по мере надобности
 {
 public:
@@ -1778,13 +1975,11 @@ public:
     }
     inline bool SetStyle(const NSCSS::CCompiledStyle& oCompiledStyle, bool bResetStyle, UnitSystem& oUnitSystem, IRefStorage* pStorage, const ColorTable& Table = ColorTable())
     {
-        std::wstring wsStyle;
-
         if (!oCompiledStyle.m_pBackground.GetColorHex().empty())
         {
-                std::wstring FillColor = L'#' + oCompiledStyle.m_pBackground.GetColorHex();
+                std::wstring wsFillColor = L'#' + oCompiledStyle.m_pBackground.GetColorHex();
 
-                std::wstring sUrlRef = StrUtils::UrlRefValue(FillColor);
+                std::wstring sUrlRef = StrUtils::UrlRefValue(wsFillColor);
                 if (!sUrlRef.empty())
                 {
                     ISvgRef* pDef = NULL;
@@ -1795,9 +1990,18 @@ public:
                 }
                 else
                 {
-                    m_nFillColor = ColorParser::ColorFromString(FillColor);
+                    m_nFillColor = ColorParser::ColorFromString(wsFillColor);
                     m_bHaveFillColor	=	true;
                 }
+        }
+
+        if (!oCompiledStyle.m_pText.GetDecoration().empty())
+        {
+               std::wstring wsTextDecoration = oCompiledStyle.m_pText.GetDecoration();
+
+               if (L"single" == wsTextDecoration)
+               {
+               }
         }
 
         return true;
@@ -2179,8 +2383,8 @@ private:
 
     bool		m_IsCSS;
 };
-
-
+*/
+/*
 class StyleStack
 {
 public:
@@ -2233,6 +2437,8 @@ private:
 
     std::vector<Style> m_styles;
 };
+*/
+/*
 class FontStyle
 {
 public:
@@ -2243,7 +2449,6 @@ public:
 
     bool SetStyle(const std::wstring& src)
     {
-        /*
             <text id="svg_7" text-decoration="underline"
             font-style="italic"
             fill="#cc0000"
@@ -2255,7 +2460,6 @@ public:
             font-size="40pt"
             y="100"
             x="100">Simple Text</text>
-            */
 
         return true;
     }
@@ -2458,7 +2662,8 @@ private:
     double	m_nFontSize;
     Metrics	m_nFontMetrics;
 };
-
+*/
+/*
 class CStyleCSS
 {
 public:
@@ -2621,8 +2826,8 @@ private:
 
     // TODO: остальные типа селекторов
 };
+*/
 }
-
 namespace SVG
 {
 class Matrix
@@ -3402,7 +3607,7 @@ protected:
         }
 
         double dVal				=	StrUtils::DoubleValue(sVal);
-        SVG::Metrics oValMet	=	StrUtils::GetMetrics(sVal);
+        Metrics oValMet	=	StrUtils::GetMetrics(sVal);
 
         return oUs.Convert(dVal, oValMet, direction);
     }
@@ -3779,11 +3984,11 @@ public:
     }
 
     //
-    virtual void SetStyle(const Style& oStyle)
+    virtual void SetStyle(const CSvgStyle& oStyle)
     {
         m_oStyle = oStyle;
     }
-    virtual const Style& GetStyle()
+    virtual const CSvgStyle& GetStyle()
     {
         return m_oStyle;
     }
@@ -3820,13 +4025,13 @@ protected:
     inline static double DoubleValue (XmlUtils::CXmlNode& oXml, std::wstring oAttr, UnitSystem& oUs, long direction)
     {
         double dVal				=	StrUtils::DoubleValue(oXml.GetAttribute(oAttr));
-        SVG::Metrics oValMet	=	StrUtils::GetMetrics(oXml.GetAttribute(oAttr));
+        Metrics oValMet	=	StrUtils::GetMetrics(oXml.GetAttribute(oAttr));
 
         return oUs.Convert(dVal, oValMet, direction);
     }
 
 protected:
-    Style	m_oStyle;
+    CSvgStyle	m_oStyle;
     Matrix	m_oTransform;
     std::wstring m_className;
 };
@@ -4174,7 +4379,9 @@ public:
         m_Source		=	StrUtils::Normalize(oXmlNode.GetText ());
 
         // стиль может задаваться вообще где то вверху по дереву
-        m_oFontStyle.UpdateStyle ( oXmlNode );
+
+        //TODO: проверить нужно ли это
+//        m_oFontStyle.UpdateStyle ( oXmlNode );
 
         return true;
     }
@@ -4198,7 +4405,7 @@ public:
             return dX;
     }
 
-    inline const FontStyle& GetFontStyle ()
+    inline const CSvgFontStyle& GetFontStyle ()
     {
         return m_oFontStyle;
     }
@@ -4212,7 +4419,7 @@ public:
     Point		m_Shift;
 
     std::wstring m_Source;
-    FontStyle	m_oFontStyle;
+    CSvgFontStyle m_oFontStyle;
 
     UnitSystem	m_oUs;
 
@@ -4717,10 +4924,11 @@ public:
         m_model					=	model;
 
         RefElement::FromXml (oXml, model, oUs);
+
         m_oViewBox.FromXml (oXml);
         Explore(oXml);
 
-        //Pattern::FromXml (oXml, m_model, oUs);
+//        Pattern::FromXml (oXml, m_model, oUs);
 
         return true;
     }
@@ -4819,22 +5027,11 @@ protected:
         DrawElement* element = m_oBuilder.Build (oXml.GetName());
         if (element)
         {
-            Style oStyle = m_oStyle;
-            FontStyle oFontStyle = m_oFontStyle;
+            CSvgStyle oStyle = m_oStyle;
+            CSvgFontStyle oFontStyle = m_oFontStyle;
 
-            std::wstring css = oXml.GetAttribute(L"style");
-            if (!css.empty())
-            {
-                oStyle.SetStyle(css, false, m_oUs, NULL, m_oColTable);
-                oFontStyle.SetStyle(css, false);
-            }
-            else
-            {
-                oStyle.UpdateStyle(oXml, m_oUs, NULL, m_oColTable);
-                oFontStyle.UpdateStyle(oXml);
-            }
-
-            m_oUs.SetFontSizeForEM(oFontStyle.DoubleAttribute(FontSize));
+            if (!oFontStyle.GetLineHeight().empty())
+                m_oUs.SetFontSizeForEM(_wtof(oFontStyle.GetLineHeight().c_str()));
 
             element->SetStyle(oStyle);
 
@@ -4874,8 +5071,8 @@ protected:
     UnitSystem					m_oUs;
     ColorTable					m_oColTable;
 
-    Style						m_oStyle;
-    FontStyle					m_oFontStyle;
+    CSvgStyle						m_oStyle;
+    CSvgFontStyle					m_oFontStyle;
     MatrixStack					m_transforms;
 
     ViewBox						m_oViewBox;
@@ -5076,6 +5273,7 @@ private:
                         if ( pContainer )
                         {
                             pContainer->FromXml(oXmlNode2, m_model, m_oViewBox, m_oUs, m_transforms.GetFinal());
+
                             m_model->HashRef(pContainer, false);
 
                             m_arrGroup.push_back(pContainer);
@@ -5135,22 +5333,11 @@ private:
         DrawElement* element		=	m_oDrawBuilder.Build(strXmlNode);
         if (element)
         {
-            Style oStyle			=	m_oStyle;
-            FontStyle oFontStyle	=	m_oFontStyle;
+            CSvgStyle oStyle			=	m_oStyle;
+            CSvgFontStyle oFontStyle	=	m_oFontStyle;
 
-            std::wstring css = oXml.GetAttribute(L"style");
-            if (!css.empty())
-            {
-                oStyle.SetStyle(css, false, m_oUs, m_model, m_oColTable);
-                oFontStyle.SetStyle(css, false);
-            }
-            else
-            {
-                oStyle.UpdateStyle(oXml, m_oUs, m_model, m_oColTable);
-                oFontStyle.UpdateStyle(oXml);
-            }
-
-            m_oUs.SetFontSizeForEM(oFontStyle.DoubleAttribute(FontSize));
+            if (!oFontStyle.GetLineHeight().empty())
+                m_oUs.SetFontSizeForEM(_wtof(oFontStyle.GetLineHeight().c_str()));
 
             element->SetStyle(oStyle);
 
@@ -5205,17 +5392,18 @@ private:
     }
     inline void UpdateMainStyle (XmlUtils::CXmlNode& oXml)
     {
-        std::wstring css = oXml.GetAttribute(L"style");
-        if (!css.empty())
-        {
-            m_oFontStyle.SetStyle(css, true);
-            m_oStyle.SetStyle(css, true, m_oUs, m_model, m_oColTable);
-        }
-        else
-        {
-            m_oFontStyle.UpdateStyle(oXml);
-            m_oStyle.UpdateStyle(oXml, m_oUs, m_model, m_oColTable);
-        }
+            //TODO:нужно ли?
+//        std::wstring css = oXml.GetAttribute(L"style");
+//        if (!css.empty())
+//        {
+//            m_oFontStyle.SetStyle(css, true);
+//            m_oStyle.SetStyle(css, true, m_oUs, m_model, m_oColTable);
+//        }
+//        else
+//        {
+//            m_oFontStyle.UpdateStyle(oXml);
+//            m_oStyle.UpdateStyle(oXml, m_oUs, m_model, m_oColTable);
+//        }
     }
     inline void Clear()
     {
@@ -5264,8 +5452,8 @@ private:
     UnitSystem				m_oUs;
     ColorTable				m_oColTable;
 
-    Style					m_oStyle;
-    FontStyle				m_oFontStyle;
+    CSvgStyle					m_oStyle;
+    CSvgFontStyle				m_oFontStyle;
     MatrixStack				m_transforms;
 };
 }
@@ -5342,13 +5530,14 @@ public:
             DrawElement* pRef = static_cast<DrawElement*>(m_arrGroup[i]);
             if (pRef)
             {
-                const Style& style = pRef->GetStyle();
-                if (style.GetFillUrlRef().length() && (NULL == style.GetFill()))
-                {
+                const CSvgStyle& style = pRef->GetStyle();
+                //TODO:: нужно ли
+//                if (style.GetFillUrlRef().length() && (NULL == style.GetFill()))
+//                {
 #ifdef _DEBUG
                     //ATLTRACE (_T("[svg] NEED JOIN FILL STYLE : id - %s"), pRef->nodeId());
 #endif
-                }
+//                }
             }
         }
 
@@ -5512,7 +5701,6 @@ public:
         m_heightMM		=	0.0;
 
         m_bEnableFonts	=	true;
-        m_CSS			=	NULL;
 
         m_bIsExternalManager = false;
 
@@ -5541,10 +5729,6 @@ public:
     {
         return m_oUs;
     }
-    inline void SetCSS(CStyleCSS* css)
-    {
-        m_CSS	=	css;
-    }
 
     bool Draw(IRefStorage* model, IRenderer* render, const UnitSystem& oUs, double dX, double dY, double dW, double dH);
 
@@ -5556,23 +5740,23 @@ public:
 
 private:
     void SetTransform(const double& sx, const double& shy, const double& shx, const double& sy, const double& tx, const double& ty);
-    bool DrawLine (Line* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawRectangle (Rectangle* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawCircle (Circle* element,const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawEllipse (Ellipse* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawPolyline (Polyline* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawPolygon (Polygon* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawPath (Path* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawText (Text* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawImage (Image* element, const Style& oStyle, const std::wstring& strClassName = L"");
-    bool DrawUse (Use* element, const Style& oStyle, const std::wstring& strClassName = L"");
+    bool DrawLine (Line* element, const CSvgStyle& oStyle);
+    bool DrawRectangle (Rectangle* element, const CSvgStyle& oStyle);
+    bool DrawCircle (Circle* element,const CSvgStyle& oStyle);
+    bool DrawEllipse (Ellipse* element, const CSvgStyle& oStyle);
+    bool DrawPolyline (Polyline* element, const CSvgStyle& oStyle);
+    bool DrawPolygon (Polygon* element, const CSvgStyle& oStyle);
+    bool DrawPath (Path* element, const CSvgStyle& oStyle);
+    bool DrawText (Text* element, const CSvgStyle& oStyle);
+    bool DrawImage (Image* element, const CSvgStyle& oStyle);
+    bool DrawUse (Use* element, const CSvgStyle& oStyle);
 
     bool DrawStorage (IRefStorage* pStorage, const Matrix& parentTransform = Matrix(), const Point& off = Point());
     bool DrawGraphicsContainer (GraphicsContainer* element, const Matrix& parentTransform = Matrix(), const Point& off = Point());
-    bool DrawInternal (DrawElement* pE, const Matrix& parentTransform, const Point& off, const Style& oMainStyle);
+    bool DrawInternal (DrawElement* pE, const Matrix& parentTransform, const Point& off, const CSvgStyle& oMainStyle);
 
-    bool SetBrushStyle (const Style& style, const std::wstring& strClassName = L"");
-    bool SetStrokeStyle (const Style& style, const std::wstring& strClassName = L"");
+    bool SetBrushStyle (const CSvgStyle& style);
+    bool SetStrokeStyle (const CSvgStyle& style);
 
     // commands only
 
@@ -5700,29 +5884,6 @@ private:
             }
             */
     }
-    inline Style ComposeStyles(DrawElement* element, const Style& style)
-    {
-        Style composeStyle = style;
-        if (m_CSS)
-        {
-            Style elementStyle;
-            if (m_CSS->GetStyleForType(element->nodeType(), elementStyle))
-            {
-                if (elementStyle.IsCSS())
-                {
-                    Style::UpdateValidateAttributes(elementStyle, composeStyle);
-                }
-            }
-
-            Style classStyle;
-            if (m_CSS->GetClassStyle(element->ClassName(), classStyle))
-            {
-                Style::UpdateValidateAttributes(classStyle, composeStyle);
-            }
-        }
-
-        return composeStyle;
-    }
 
 private:
     bool                            m_bIsExternalManager;
@@ -5745,7 +5906,6 @@ private:
     bool							m_bEnableFonts;
     std::wstring					m_sWorkingDirectory;
     std::map<std::wstring, PatternImage*>	m_patterns;
-    CStyleCSS*						m_CSS;
 };
 
 }
@@ -5928,6 +6088,8 @@ public:
 
         m_nDefWidth		=	800;
         m_nDefHeight	=	600;
+
+        m_oCssCalculator.SetRoundingValues(false);
     }
     ~Parser ()
     {
@@ -6052,9 +6214,18 @@ public:
 
             m_oUs.SetViewBox(m_nWidth, m_nHeight, m_oViewBox, m_Metrics);
 
-            SetDefaultSizes ();
+//            switch (m_Metrics)
+//            {
+//                case Metrics::PX: m_oCssCalculator.SetUnitMeasure(NSCSS::Pixel);        break;
+//                case Metrics::PT: m_oCssCalculator.SetUnitMeasure(NSCSS::Point);        break;
+//                case Metrics::PC: m_oCssCalculator.SetUnitMeasure(NSCSS::Point);        break;
+//                case Metrics::CM: m_oCssCalculator.SetUnitMeasure(NSCSS::Cantimeter);   break;
+//                case Metrics::MM: m_oCssCalculator.SetUnitMeasure(NSCSS::Millimeter);   break;
+//                case Metrics::INCH: m_oCssCalculator.SetUnitMeasure(NSCSS::Inch);       break;
+//                default: break;
+//            }
 
-            m_oStyle.SetDefault();
+            SetDefaultSizes ();
         }
         else if (L"g" == strXmlNode)
         {
@@ -6131,7 +6302,6 @@ public:
         {
             if (L"text/css" == oXml.GetAttribute(L"type"))
             {
-                m_CSS.Read(oXml, m_oUs, m_model, m_oColTable);
                 m_oCssCalculator.AddStyles(oXml.GetText());
             }
         }
@@ -6180,8 +6350,6 @@ public:
         if (ExploreLayer)
         {
             m_transforms.Pop ();
-            m_oStyles.Pop();
-
             --m_nLayerLevel;
         }
 
@@ -6212,13 +6380,6 @@ public:
     inline const UnitSystem& GetUnitSystem ()
     {
         return m_oUs;
-    }
-    inline CStyleCSS* GetCSS()
-    {
-        if (m_CSS.IsValid())
-            return &m_CSS;
-
-        return NULL;
     }
     //
     inline void SetDefaultWidth(const long& Width)
@@ -6303,28 +6464,26 @@ private:
         DrawElement* element		=	m_oDrawBuilder.Build (strXmlNode);
         if (element)
         {
-            Style oTopStyle			=	m_oStyles.GetTop();
-            Style oStyle			=	m_oStyle;
-            oStyle.ClearOpacity ();
+            CSvgStyle oStyle			=	m_oStyle;
 
-            FontStyle oFontStyle	=	m_oFontStyle;
+            CSvgFontStyle oFontStyle	=	m_oFontStyle;
 
             if (NULL != m_oTree.GetSelectedElement())
                     m_oTree.GetSelectedElement()->SetDrawElement(element);
 
-            m_oUs.SetFontSizeForEM(oFontStyle.DoubleAttribute(FontSize));
+            m_oUs.SetFontSizeForEM(m_oStyle.GetFontSize());
 
             if (NULL != m_oTree.GetSelectedElement())
             {
                 std::vector<NSCSS::CNode> arSelectors = m_oTree.GetSelectedElement()->GetCssSelectors();
 
-                NSCSS::CCompiledStyle oSettingsCompiledStyle = m_oCssCalculator.GetCompiledStyle(arSelectors, true);
                 NSCSS::CCompiledStyle oCompiledStyle = m_oCssCalculator.GetCompiledStyle(arSelectors);
 
-                NSCSS::CCompiledStyle::StyleEquation(oCompiledStyle, oSettingsCompiledStyle);
-
-                oStyle.SetStyle(m_oTree.GetSelectedElement(), true, m_oUs, m_model, m_oColTable);
-                oStyle.UpdateStyle(oCompiledStyle, m_oUs, m_model, m_oColTable);
+                oStyle.SetStyle(m_oTree.GetSelectedElement());
+                oStyle.UpdateStyle(oCompiledStyle);
+                oStyle.UpdateStyle(m_oTree.GetSelectedElement());
+//                oStyle.SetStyle(m_oTree.GetSelectedElement(), true, m_oUs, m_model, m_oColTable);
+//                oStyle.UpdateStyle(oCompiledStyle, m_oUs, m_model, m_oColTable);
             }
 
             element->SetStyle(oStyle);
@@ -6445,9 +6604,8 @@ private:
     DefsBuilder		m_oDefsBuilder;
 
     ColorTable		m_oColTable;
-    Style			m_oStyle;
-    FontStyle		m_oFontStyle;
-    StyleStack		m_oStyles;
+    CSvgStyle               m_oStyle;
+    CSvgFontStyle		m_oFontStyle;
 
     MatrixStack		m_transforms;
 
@@ -6460,7 +6618,6 @@ private:
     long			m_nDefHeight;
 
     std::wstring	m_sWorkingDirectory;
-    CStyleCSS		m_CSS;
 
     NSCSS::CCssCalculator m_oCssCalculator;
     CSvgTree m_oTree;

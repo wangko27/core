@@ -1,5 +1,7 @@
 #include "SVGFramework.h"
 
+#include "../../fontengine/FontManager.h"
+
 #define RGB(r, g, b) ((unsigned int)( ( (unsigned char)(r) )| ( ( (unsigned char)(g) ) << 8 ) | ( ( (unsigned char)(b) ) << 16 ) ) )
 #define ADD_COLOR( COLOR, R, G, B ) m_Table.insert(std::pair<std::wstring, unsigned int>( L##COLOR, RGB(R, G, B) ))
 
@@ -19,6 +21,7 @@ namespace SVG
 		if (!m_Table.empty())
 			return;
 
+		ADD_COLOR("auto", 0, 0, 0);
 		ADD_COLOR("aliceblue", 240, 248, 255);
 		ADD_COLOR("antiquewhite", 250, 235, 215); 
 		ADD_COLOR("aqua",  0, 255, 255); 
@@ -341,10 +344,10 @@ namespace SVG
 
         return bRes;
 	}
-    bool Painter::DrawLine (Line* element, const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawLine (Line* element, const CSvgStyle& oStyle)
 	{
 		LONG type = 0;
-		if (SetStrokeStyle(oStyle, strClassName))
+		if (SetStrokeStyle(oStyle))
 			type += c_nStroke;
 
 		if (0 != type)	
@@ -364,14 +367,14 @@ namespace SVG
 
         return true;
 	}
-    bool Painter::DrawRectangle (Rectangle* element, const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawRectangle (Rectangle* element, const CSvgStyle& oStyle)
 	{
         DoClip (element->GetClip(), true);
 
 		LONG type = 0;
-		if (SetBrushStyle(oStyle, strClassName))
+		if (SetBrushStyle(oStyle))
 			type += c_nWindingFillMode;
-		if (SetStrokeStyle(oStyle, strClassName))
+		if (SetStrokeStyle(oStyle))
 			type += c_nStroke;
 
 		if (0 != type)
@@ -381,14 +384,14 @@ namespace SVG
 
         return true;
 	}
-    bool Painter::DrawCircle (Circle* element,const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawCircle (Circle* element,const CSvgStyle& oStyle)
 	{
         DoClip (element->GetClip(), true);
 
 		LONG type = 0;
-		if (SetBrushStyle(oStyle, strClassName))
+		if (SetBrushStyle(oStyle))
 			type += c_nWindingFillMode;
-		if (SetStrokeStyle(oStyle, strClassName))
+		if (SetStrokeStyle(oStyle))
 			type += c_nStroke;
 
 		if (0 != type)	
@@ -398,14 +401,14 @@ namespace SVG
 
         return true;
 	}
-    bool Painter::DrawEllipse (Ellipse* element, const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawEllipse (Ellipse* element, const CSvgStyle& oStyle)
 	{
         DoClip (element->GetClip(), true);
 
 		LONG type = 0;
-		if (SetBrushStyle(oStyle, strClassName))
+		if (SetBrushStyle(oStyle))
 			type += c_nWindingFillMode;
-		if (SetStrokeStyle(oStyle, strClassName))
+		if (SetStrokeStyle(oStyle))
 			type += c_nStroke;
 
 		if (0 != type)	
@@ -415,14 +418,14 @@ namespace SVG
 
         return true;
 	}
-    bool Painter::DrawPolyline (Polyline* element, const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawPolyline (Polyline* element, const CSvgStyle& oStyle)
 	{
         DoClip (element->GetClip(), true);
 
 		LONG type = 0;
-		if (SetBrushStyle(oStyle, strClassName))
+		if (SetBrushStyle(oStyle))
 			type += c_nWindingFillMode;
-		if (SetStrokeStyle(oStyle, strClassName))
+		if (SetStrokeStyle(oStyle))
 			type += c_nStroke;
 
 		if (0 != type)	
@@ -434,14 +437,14 @@ namespace SVG
 
         return true;
 	}
-    bool Painter::DrawPolygon (Polygon* element, const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawPolygon (Polygon* element, const CSvgStyle& oStyle)
 	{
         DoClip (element->GetClip(), true);
 
 		LONG type = 0;
-		if (SetBrushStyle(oStyle, strClassName))
+		if (SetBrushStyle(oStyle))
 			type += c_nWindingFillMode;
-		if (SetStrokeStyle(oStyle, strClassName))
+		if (SetStrokeStyle(oStyle))
 			type += c_nStroke;
 
 		if (0 != type)	
@@ -453,14 +456,14 @@ namespace SVG
 
         return true;
 	}		
-    bool Painter::DrawPath (Path* element, const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawPath (Path* element, const CSvgStyle& oStyle)
 	{
         DoClip (element->GetClip(), true);
 
 		LONG lType = 0;
-		if (SetBrushStyle(oStyle, strClassName))
+		if (SetBrushStyle(element->GetStyle()))
 			lType += c_nWindingFillMode;
-		if (SetStrokeStyle(oStyle, strClassName))
+		if (SetStrokeStyle(element->GetStyle()))
 			lType += c_nStroke;
 
 		if (0 != lType)
@@ -470,23 +473,24 @@ namespace SVG
 
         return true;
 	}
-    bool Painter::DrawText (Text* element, const Style& oStyle, const std::wstring& strClassName)
+	bool Painter::DrawText (Text* element, const CSvgStyle& oStyle)
 	{
-		if (!m_bEnableFonts)
-            return false;
+		if (NULL == element || !m_bEnableFonts)
+			return false;
 
-        NSFonts::IFontManager* fontManager = GetFontManager();
+		CFontManager* fontManager = dynamic_cast<CFontManager*>(GetFontManager());
+
 		if (NULL == fontManager)
-            return false;
+			return false;
 
-        bool clipOn = DoClip (element->GetClip(), true);
+		bool clipOn = DoClip (element->GetClip(), true);
 
-		SetBrushStyle (oStyle, strClassName);
+                SetBrushStyle (oStyle);
 
-        double dpiX = 0.0;	m_render->get_DpiX ( &dpiX );
-        double dpiY = 0.0;	m_render->get_DpiY ( &dpiY );
+                double dpiX = 0.0;	m_render->get_DpiX ( &dpiX );
+                double dpiY = 0.0;	m_render->get_DpiY ( &dpiY );
 
-//		if ( 0.0 == dpiX || 0.0 == dpiY) // Уменьшается размер текста
+		if ( 0.0 == dpiX || 0.0 == dpiY)
 		{
 			double dWidthMM = 0; m_render->get_Width(&dWidthMM);
 			double dHeightMM = 0; m_render->get_Height(&dHeightMM);
@@ -498,89 +502,129 @@ namespace SVG
 			dpiY = dHeightPix / dHeightMM * 25.4;
 		}
 
-		double dFontSize = element->GetFontStyle ().DoubleAttribute ( FontSize ) * 72.0f / dpiX * element->m_oUs.GetFactorFontSize ();
+		double dFontKoef = 1.0f;
 
-		if (dFontSize <= 0.0)
-			dFontSize = 22;
+		double dHeightMM = 0; m_render->get_Height(&dHeightMM);
+		double dHeightPix = m_oUs.GetHeight();
 
-		if (dFontSize <= 0.0 && false)	//	for geicha_6000px.svg
-		{
-			if (clipOn)
-                DoClip (element->GetClip(), false);
+		dFontKoef = dpiY / (dHeightPix / dHeightMM * 25.4);
 
-            return false;
-		}
+		double dFontSize = oStyle.GetFontSize() / 25.4 * 72 * dFontKoef * element->m_oUs.GetFactorFontSize();
 
-        std::wstring bsFontFamily	=	element->GetFontStyle().GetAttribute(FontFamily);
-        std::wstring bsText			=	element->GetText();
+                if (0 == dFontSize)
+                        dFontSize = 13 / dFontKoef;
 
-		m_render->put_FontSize ( dFontSize );
+                std::wstring bsFontFamily = oStyle.GetFontFamily();
+                std::wstring bsText       = element->GetText();
+
+		m_render->put_FontSize ( dFontSize * dFontKoef);
 		m_render->put_FontName ( bsFontFamily );
 
 		LONG Style	= 0L;
-		if ( FontWeightBold == element->GetFontStyle ().LongAttribute ( FontWeight ) )
-		{
-			Style |= 0x01;
-		}
 
-		if ( FontStyleItalic == element->GetFontStyle ().LongAttribute ( FontStyleAttr ) )
-		{
+		if (FontWeightBold == oStyle.GetFontWeight())
+			Style |= 0x01;
+
+		if (FontStyleItalic == oStyle.GetFontStyle())
 			Style |= 0x02;
-		}
 
 		m_render->put_FontStyle (Style);
 
-	fontManager->LoadFontByName ( bsFontFamily, dFontSize, Style, dpiX, dpiY );
+		fontManager->LoadFontByName ( bsFontFamily, dFontSize, Style, 72, 72 );
 		fontManager->LoadString2 ( bsText, 0, 0 );
-        TBBox bBox = fontManager->MeasureString();
+		TBBox bBox = fontManager->MeasureString2();
 
 //        bBox.fMinX *= (25.4f / 72.0f);
 //        bBox.fMinY *= (25.4f / 72.0f);
 
-        int nOffset = bBox.fMaxY - bBox.fMinY;
+                int nOffset = bBox.fMaxY - bBox.fMinY;
 
-        float m_fLineSpacing = fontManager->GetLineHeight();
-        float m_fEmHeight = fontManager->GetUnitsPerEm();
-        float m_fAscent = fontManager->GetAscender();
-        float m_fDescent = fontManager->GetDescender();
+                float m_fLineSpacing    = fontManager->GetLineHeight();
+                float m_fEmHeight       = fontManager->GetUnitsPerEm();
+                float m_fAscent         = fontManager->GetAscender();
+                float m_fDescent        = fontManager->GetDescender();
 
 		double OffSetY = 3 * (m_fLineSpacing - m_fDescent) - m_fAscent;
 		OffSetY /= 2.0;
 		OffSetY *= (dFontSize / m_fEmHeight);
 		//OffSetY *= dpiY / 72.0;
-		OffSetY *= (25.4 / 72.0);
+		OffSetY *= (25.4 / dpiY);
 
 		element->m_unWidth = bBox.fMaxX - bBox.fMinX;
 
 		//Устанавливаем цвет текста
 		m_render->put_BrushType(c_BrushTypeSolid);
-		m_render->put_BrushColor1(element->GetStyle().LongAttribute(FillColor));
+		m_render->put_BrushColor1(oStyle.GetFillColor());
 		m_render->put_BrushAlpha1(255);
 
-		double dX = element->m_Pos.X;
+		double dX = element->m_Pos.X + element->m_Shift.X,
+		       dY = element->m_Pos.Y + element->m_Shift.Y;
 
 		if (NULL != element->m_pLastText)
 			dX = element->m_pLastText->GetEndX();
 
-		if ( FontTextAnchorStart == element->GetFontStyle().LongAttribute(FontTextAnchor))
+		switch (oStyle.GetTextAnchor())
 		{
-	    m_render->CommandDrawText ( bsText, dX, element->m_Pos.Y - nOffset, bBox.fMinX, OffSetY );
+			case FontTextAnchorStart :  dY -= 0;	    break;
+			case FontTextAnchorMiddle : dX -= bBox.fMinX * 0.5; break;
+			case FontTextAnchorEnd :    dX -= bBox.fMinX;	    break;
 		}
 
-		if ( FontTextAnchorMiddle == element->GetFontStyle().LongAttribute(FontTextAnchor))
+		double dMmToPt = 25.4 / dpiY;
+
+		double dFHeight = dFontSize;
+		double dFDescent = dFontSize;
+		if (fontManager->m_pFont)
 		{
-	    m_render->CommandDrawText ( bsText, dX - bBox.fMinX * 0.5, element->m_Pos.Y, bBox.fMinX, OffSetY );
+		    dFHeight  *= fontManager->m_pFont->GetHeight() / fontManager->m_pFont->m_lUnits_Per_Em * dMmToPt;
+		    dFDescent *= fontManager->m_pFont->GetDescender() / fontManager->m_pFont->m_lUnits_Per_Em * dMmToPt;
+		}
+		double dFAscent  = dFHeight - std::abs(dFDescent);
+
+		float fL = 0, fT = 0, fW = 0, fH = 0;
+		float fUndX1 = 0, fUndY1 = 0, fUndX2 = 0, fUndY2 = 0, fUndSize = 1;
+
+		fL = (float)dMmToPt * (bBox.fMinX);
+		fW = (float)dMmToPt * (bBox.fMaxX - bBox.fMinX);
+
+		// Просчитаем положение подчеркивания
+		fontManager->GetUnderline(&fUndX1, &fUndY1, &fUndX2, &fUndY2, &fUndSize);
+		fUndY1   *= (float)dMmToPt;
+		fUndY2   *= (float)dMmToPt;
+		fUndSize *= (float)dMmToPt / 2;
+
+		fUndX1 = fL;
+		fUndX2 = fL + fW;
+
+		fT = (float)-dFAscent;
+		fH = (float)dFHeight;
+
+		// Нарисуем подчеркивание
+		if (None !=  oStyle.GetTextUnderline())
+		{
+			float fUndX1 = 0, fUndY1 = 0, fUndX2 = 0, fUndY2 = 0, fUndSize = 0;
+			fontManager->GetUnderline(&fUndX1, &fUndY1, &fUndX2, &fUndY2, &fUndSize);
+
+			m_render->put_PenSize((double)fUndSize);
+			m_render->put_PenLineEndCap(0);
+			m_render->put_PenLineStartCap(0);
+
+			m_render->BeginCommand(c_nPathType);
+			m_render->PathCommandStart();
+			m_render->PathCommandMoveTo(dX + fUndX1, dY + fUndY1);
+			m_render->PathCommandLineTo(dX + fUndX2, dY + fUndY2);
+			m_render->DrawPath(c_nStroke);
+			m_render->EndCommand(c_nPathType);
+			m_render->PathCommandEnd();
 		}
 
-		if (FontTextAnchorEnd == element->GetFontStyle ().LongAttribute(FontTextAnchor))
-		{
-	    m_render->CommandDrawText ( bsText, dX - bBox.fMinX, element->m_Pos.Y, bBox.fMinX, OffSetY );
-		}
+		m_render->CommandDrawText(bsText, dX, dY, bBox.fMinX, OffSetY );
 
-        DoClip (element->GetClip(), false);
-        return true;
+                DoClip (element->GetClip(), false);
+                return true;
 	}
-    bool Painter::DrawImage (Image* element, const Style& oStyle, const std::wstring& strClassName)
+
+	bool Painter::DrawImage (Image* element, const CSvgStyle& oStyle)
 	{
         if (!element->GetXLink().empty())
 		{	
@@ -607,7 +651,7 @@ namespace SVG
 
         return true;
 	}
-    bool Painter::DrawUse (Use* element, const Style& oStyle, const std::wstring& strClassName)
+    bool Painter::DrawUse (Use* element, const CSvgStyle& oStyle)
 	{
         bool retVal = false;
 
@@ -651,12 +695,13 @@ namespace SVG
 
 					Matrix local = m_transforms.GetFinal();
 
-                    Style oCompleteStyle;
-                    Style::UpdateValidateAttributes(drawElement->GetStyle(), oCompleteStyle);
-                    Style::UpdateValidateAttributes(element->GetStyle(), oCompleteStyle);
+					//TODO:: разобраться тут
+//                    Style oCompleteStyle;
+//                    Style::UpdateValidateAttributes(drawElement->GetStyle(), oCompleteStyle);
+//                    Style::UpdateValidateAttributes(element->GetStyle(), oCompleteStyle);
 
                     element->GetStyle();
-                    retVal = DrawInternal (drawElement, local, element->GetFrom(), oCompleteStyle);
+//                    retVal = DrawInternal (drawElement, local, element->GetFrom(), oCompleteStyle);
 
 					m_transforms.Pop();
 				}
@@ -685,8 +730,7 @@ namespace SVG
 					if (EClipPath == code)
 						continue;
 
-                    const std::wstring& css	=	pE->ClassName();
-					Style oStyle			=	pE->GetStyle();						
+					CSvgStyle oStyle			=	pE->GetStyle();
 //					oStyle					=	ComposeStyles(pE, oStyle);
 
 					Matrix mat = parentTransform;						
@@ -700,15 +744,15 @@ namespace SVG
 					switch (code)
 					{
 					case ERectangle:			DrawRectangle(static_cast<Rectangle*>(pE),oStyle);								continue;	break;
-					case ELine:					DrawLine(static_cast<Line*>(pE),oStyle,css);										continue;	break;
-					case EEllipse:				DrawEllipse(static_cast<Ellipse*>(pE),oStyle,css);									continue;	break;
-					case ECircle:				DrawCircle(static_cast<Circle*>(pE),oStyle,css);									continue;	break;
-					case EPath:					DrawPath(static_cast<Path*>(pE),oStyle,css);										continue;	break;
-					case EPolyline:				DrawPolyline(static_cast<Polyline*>(pE),oStyle,css);								continue;	break;
-					case EPolygon:				DrawPolygon(static_cast<Polygon*>(pE),oStyle,css);									continue;	break;
+					case ELine:					DrawLine(static_cast<Line*>(pE),oStyle);										continue;	break;
+					case EEllipse:				DrawEllipse(static_cast<Ellipse*>(pE),oStyle);									continue;	break;
+					case ECircle:				DrawCircle(static_cast<Circle*>(pE),oStyle);									continue;	break;
+					case EPath:					DrawPath(static_cast<Path*>(pE),oStyle);										continue;	break;
+					case EPolyline:				DrawPolyline(static_cast<Polyline*>(pE),oStyle);								continue;	break;
+					case EPolygon:				DrawPolygon(static_cast<Polygon*>(pE),oStyle);									continue;	break;
 					case EText:					DrawText(static_cast<Text*>(pE),oStyle);										continue;	break;
-					case EImage:				DrawImage(static_cast<Image*>(pE),oStyle,css);										continue;	break;
-					case EUse:					DrawUse(static_cast<Use*>(pE),oStyle,css);											continue;	break;
+					case EImage:				DrawImage(static_cast<Image*>(pE),oStyle);										continue;	break;
+					case EUse:					DrawUse(static_cast<Use*>(pE),oStyle);											continue;	break;
 					case EGraphicsContainer:	DrawGraphicsContainer(static_cast<GraphicsContainer*>(pE), parentTransform, off);	continue;	break;
 					}
 				}
@@ -729,7 +773,7 @@ namespace SVG
 
 		return ret;
 	}
-    bool Painter::DrawInternal (DrawElement* pE, const Matrix& parentTransform, const Point& off, const Style& oMainStyle)
+    bool Painter::DrawInternal (DrawElement* pE, const Matrix& parentTransform, const Point& off, const CSvgStyle& oMainStyle)
 	{
 		Matrix mat = parentTransform;						
 		mat *=	Matrix::TranslateTransform(off.X, off.Y);
@@ -739,52 +783,52 @@ namespace SVG
 
 		UpdateClass(pE);
 
-		Style oStyle	=	pE->GetStyle();
-		Style::UpdateValidateAttributes (oMainStyle, oStyle);
-		oStyle			=	ComposeStyles(pE, oStyle);
+		CSvgStyle oStyle	=	pE->GetStyle();
+		//TODO:: разобраться в этом
+//		oStyle			=	ComposeStyles(pE, oStyle);
 
         const std::wstring& strClass = pE->ClassName();
 		ENodeType code	=	pE->nodeType();
 
 		if (ERectangle == code)
 		{
-            DrawRectangle(static_cast<Rectangle*>(pE),oStyle,strClass);			return true;
+	    DrawRectangle(static_cast<Rectangle*>(pE),oStyle);			return true;
 		}
 		else if (ELine == code)
 		{
-            DrawLine(static_cast<Line*>(pE),oStyle,strClass);					return true;
+	    DrawLine(static_cast<Line*>(pE),oStyle);					return true;
 		}
 		else if (EEllipse == code)
 		{
-            DrawEllipse(static_cast<Ellipse*>(pE),oStyle,strClass);				return true;
+	    DrawEllipse(static_cast<Ellipse*>(pE),oStyle);				return true;
 		}
 		else if (ECircle == code)
 		{
-            DrawCircle(static_cast<Circle*>(pE),oStyle,strClass);				return true;
+	    DrawCircle(static_cast<Circle*>(pE),oStyle);				return true;
 		}
 		else if (EPath == code)
 		{
-            DrawPath(static_cast<Path*>(pE),oStyle,strClass);					return true;
+	    DrawPath(static_cast<Path*>(pE),oStyle);					return true;
 		}
 		else if (EPolyline == code)
 		{
-            DrawPolyline(static_cast<Polyline*>(pE),oStyle,strClass);			return true;
+	    DrawPolyline(static_cast<Polyline*>(pE),oStyle);			return true;
 		}
 		else if (EPolygon == code)
 		{
-            DrawPolygon(static_cast<Polygon*>(pE),oStyle,strClass);				return true;
+	    DrawPolygon(static_cast<Polygon*>(pE),oStyle);				return true;
 		}
 		else if (EText == code)
 		{
-            DrawText(static_cast<Text*>(pE),oStyle,strClass);					return true;
+	    DrawText(static_cast<Text*>(pE),oStyle);					return true;
 		}
 		else if (EImage == code)
 		{
-            DrawUse(static_cast<Use*>(pE),oStyle,strClass);						return true;
+	    DrawUse(static_cast<Use*>(pE),oStyle);						return true;
 		}
 		else if (EUse == code)
 		{
-            DrawUse(static_cast<Use*>(pE),oStyle,strClass);						return true;
+	    DrawUse(static_cast<Use*>(pE),oStyle);						return true;
 		}
 
         return false;
@@ -796,7 +840,6 @@ namespace SVG
 		m_render->BeginCommand ( c_nPathType );
 
         bool SegmentEnd	=	true;
-		Point lastMove;
 
 		Point LastPoint;
 		PathParser& oPath	=	element->GetPath ();
@@ -813,30 +856,16 @@ namespace SVG
 			}
             else if ('m' == element->GetCode(i))
 			{
-				if (0 == i)
-				{					
-					m_render->PathCommandMoveTo(element->GetX(i), element->GetY(i));
-					LastPoint	=	element->Get(i);
+				m_render->PathCommandMoveTo(LastPoint.X + element->GetX(i),
+							    LastPoint.Y + element->GetY(i));
 
-					lastMove	=	LastPoint;
-				}
-				else
-				{
-					LastPoint.X	=	lastMove.X;
-					LastPoint.Y	=	lastMove.Y;
+				LastPoint += element->Get(i);
 
-					m_render->PathCommandMoveTo(element->GetX(i) + LastPoint.X, element->GetY(i) + LastPoint.Y);
-					LastPoint	+=	element->Get(i);
-
-					lastMove	=	LastPoint;
-				}
 			}
             else if ('M' == element->GetCode(i))
 			{
 				m_render->PathCommandMoveTo(element->GetX(i), element->GetY(i));
 				LastPoint	=	element->Get(i);
-
-				lastMove	=	LastPoint;
 			}
 			// lines
             else if ('l' == element->GetCode(i))
@@ -1488,13 +1517,14 @@ namespace SVG
         return true;
 	}
 
-    bool Painter::SetBrushStyle (const Style& style, const std::wstring& strClassName)
+    bool Painter::SetBrushStyle (const CSvgStyle& style)
 	{
-		double alpha	=	style.DoubleAttribute(Opacity);
+	    //TODO:: разобраться с костью
+		double alpha	=	style.GetOpacity();
 
 		m_render->put_BrushType(c_BrushTypeSolid);
 
-		ISvgRef* pFill	=	style.GetFill();
+		ISvgRef* pFill	=	/*style.GetFill()*/NULL;
 		if (pFill)
 		{
 			if (ELinearGradient == pFill->nodeType())
@@ -1524,43 +1554,43 @@ namespace SVG
             return true;
 		}
 
-		long lLongAttribute =	style.LongAttribute(FillColor);
-		double dAlplaFill	=	style.DoubleAttribute(FillOpacity);
+		long lLongAttribute	=	style.GetFillColor();
+		double dAlplaFill	=	style.GetFillOpacity();
 
-		if (-3 == lLongAttribute)
-		{
-            std::wstring::size_type nFound = strClassName.find(L"fill");
+//		if (-3 == lLongAttribute)
+//		{
+//            std::wstring::size_type nFound = strClassName.find(L"fill");
 
-			LONG lRendererType = 0;
-			m_render->get_Type(&lRendererType);
-            if ((c_nSVGConverter != lRendererType) || (nFound == std::wstring::npos))
-			{
-				m_render->put_BrushColor1 ( 0 );
-			}
-			m_render->put_BrushAlpha1 ( (LONG)( dAlplaFill * 255.0 * alpha) );
-            return true;
-		}
+//			LONG lRendererType = 0;
+//			m_render->get_Type(&lRendererType);
+//            if ((c_nSVGConverter != lRendererType) || (nFound == std::wstring::npos))
+//			{
+//				m_render->put_BrushColor1 ( 0 );
+//			}
+//			m_render->put_BrushAlpha1 ( (LONG)( dAlplaFill * 255.0 * alpha) );
+//            return true;
+//		}
 
 		if (-2 == lLongAttribute)
             return false;
 
 		if (dAlplaFill > 0.0 && (-1 != lLongAttribute) && (alpha > 0.0))
 		{
-			if (!style.ValidAttribute(FillColor))
-			{
-				LONG lRendererType = 0;
-				m_render->get_Type(&lRendererType);
-				if (c_nSVGConverter == lRendererType)
-				{
-                    std::wstring::size_type nFound = strClassName.find(L"fill");
+//			if (!style.ValidAttribute(FillColor))
+//			{
+//				LONG lRendererType = 0;
+//				m_render->get_Type(&lRendererType);
+//				if (c_nSVGConverter == lRendererType)
+//				{
+//                    std::wstring::size_type nFound = strClassName.find(L"fill");
 					
-                    if (nFound == std::wstring::npos)
-						m_render->put_BrushColor1 ( 0 );					
+//                    if (nFound == std::wstring::npos)
+//						m_render->put_BrushColor1 ( 0 );
 
-					m_render->put_BrushAlpha1 ( (LONG)( dAlplaFill * 255.0 * alpha) );
-                    return true;
-				}
-			}
+//					m_render->put_BrushAlpha1 ( (LONG)( dAlplaFill * 255.0 * alpha) );
+//                    return true;
+//				}
+//			}
 
 			m_render->put_BrushColor1 ( lLongAttribute );
 			m_render->put_BrushAlpha1 ( (LONG)( dAlplaFill * 255.0 * alpha) );
@@ -1568,32 +1598,25 @@ namespace SVG
             return true;
 		}
 
-        if ((strClassName.length() > 1) && (-1 == lLongAttribute ) && (alpha > 0.0))
-		{
-			m_render->put_BrushColor1 (0);
-			m_render->put_BrushAlpha1 ((LONG)( dAlplaFill * 255.0 * alpha));
-
-            return true;
-		}
-
         return false;
 	}
-    bool Painter::SetStrokeStyle (const Style& style, const std::wstring& strClassName)
+    bool Painter::SetStrokeStyle (const CSvgStyle& style)
 	{
-		double alpha			=	style.DoubleAttribute(Opacity);
-		double dAlplaStroke		=	style.DoubleAttribute (StrokeOpacity);
-		long lColor				=	style.LongAttribute (StrokeColor);
-		double dWidth			=	style.DoubleAttribute(StrokeWidth);
+	    //TODO:: разобраться
+		double alpha			=	style.GetOpacity();
+		double dAlplaStroke		=	style.GetStrokeOpacity();
+		long lColor			=	style.GetStrokeColor();
+		double dWidth			=	style.GetStrokeWidth();
 
-		ISvgRef* pStroke		=	style.GetStroke();
+		ISvgRef* pStroke		=	/*style.GetStroke()*/NULL;
 		if ((NULL != pStroke) && (dWidth > 0.0))
 		{
 			m_render->put_PenSize(dWidth * m_dAddMX);
 
-			long nStrokeLineCap		=	style.LongAttribute(StrokeLineCap);
-			long nStrokeLineJoin	=	style.LongAttribute(StrokeLineJoin);
+			long nStrokeLineCap		=	/*style.LongAttribute(StrokeLineCap)*/0;
+			long nStrokeLineJoin	=	/*style.LongAttribute(StrokeLineJoin)*/0;
 
-			m_render->put_PenLineJoin((unsigned char)(style.LongAttribute(StrokeLineJoin)));
+			m_render->put_PenLineJoin((unsigned char)(/*style.LongAttribute(StrokeLineJoin)*/0));
 
 			if (-1 == nStrokeLineCap)
 			{
@@ -1659,10 +1682,10 @@ namespace SVG
 			m_render->put_PenSize(dWidth * m_dAddMX);
 			m_render->put_PenAlpha((LONG)(dAlplaStroke * 255.0 * alpha));
 
-			long nStrokeLineCap		=	style.LongAttribute(StrokeLineCap);
-			long nStrokeLineJoin	=	style.LongAttribute(StrokeLineJoin);
+			long nStrokeLineCap		=	/*style.LongAttribute(StrokeLineCap)*/0;
+			long nStrokeLineJoin	=	/*style.LongAttribute(StrokeLineJoin)*/0;
 
-			m_render->put_PenLineJoin((unsigned char)(style.LongAttribute(StrokeLineJoin)));
+			m_render->put_PenLineJoin((unsigned char)(/*style.LongAttribute(StrokeLineJoin)*/0));
 
 			if (-1 == nStrokeLineCap)
 			{
@@ -1687,14 +1710,6 @@ namespace SVG
 		if (-2 == lLongAttribute)
             return false;
 
-        if (strClassName.length() > 1 && (-1 == lLongAttribute))
-		{
-			m_render->put_PenColor	(0);
-			m_render->put_PenSize	(dWidth);
-			m_render->put_PenAlpha	((LONG)(dAlplaStroke * 255.0 * alpha));
-
-            return true;
-		}
 
         return false;
 	}

@@ -40,7 +40,8 @@ bool operator<(const std::vector<NSCSS::CNode> &arLeftSelectors, const std::vect
 
 namespace NSCSS
 {
-    CCssCalculator_Private::CCssCalculator_Private() : m_nDpi(96), m_nCountNodes(0), m_UnitMeasure(Default), m_sEncoding(L"UTF-8"){}
+    CCssCalculator_Private::CCssCalculator_Private()
+            : m_nDpi(96), m_nCountNodes(0), m_UnitMeasure(Default), m_sEncoding(L"UTF-8"), m_bRoundingValues(true){}
 
     CCssCalculator_Private::~CCssCalculator_Private()
     {
@@ -331,6 +332,8 @@ namespace NSCSS
 
         CCompiledStyle *pStyle = new CCompiledStyle();
 
+        pStyle->SetRoundingValues(m_bRoundingValues);
+
         pStyle->SetDpi(m_nDpi);
         pStyle->SetUnitMeasure(m_UnitMeasure);
 
@@ -570,6 +573,11 @@ namespace NSCSS
     void CCssCalculator_Private::SetSizeDeviceWindow(const CSizeWindow &oSizeWindow)
     {
             m_oDeviceWindow = oSizeWindow;
+    }
+
+    void CCssCalculator_Private::SetRoundingValues(bool bValue)
+    {
+            m_bRoundingValues = bValue;
     }
 
     void CCssCalculator_Private::SetUnitMeasure(const UnitMeasure& nType)

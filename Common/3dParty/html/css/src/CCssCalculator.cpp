@@ -59,6 +59,11 @@ namespace NSCSS
             m_pInternal->SetSizeDeviceWindow(oSizeWindow);
     }
 
+    void CCssCalculator::SetRoundingValues(bool bValue)
+    {
+            m_pInternal->SetRoundingValues(bValue);
+    }
+
     UnitMeasure CCssCalculator::GetUnitMeasure() const
     {
         return m_pInternal->GetUnitMeasure();

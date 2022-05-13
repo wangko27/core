@@ -16,16 +16,18 @@ namespace NSCSS
 {
     typedef std::map<std::wstring, std::wstring>::const_iterator styles_iterator;
 
-        CCompiledStyle::CCompiledStyle() : m_nDpi(96), m_UnitMeasure(Default){}
+        CCompiledStyle::CCompiledStyle()
+                : m_nDpi(96), m_UnitMeasure(Default), m_bRoundingValues(true) {}
 
         CCompiledStyle::CCompiledStyle(const std::map<std::wstring, std::wstring> &mStyle)
+                : m_nDpi(96), m_UnitMeasure(Default), m_bRoundingValues(true)
         {
                 AddStyle(mStyle, 0);
         }
 
     CCompiledStyle::CCompiledStyle(const CCompiledStyle& oStyle) :
         m_arParentsStyles(oStyle.m_arParentsStyles), m_sId(oStyle.m_sId),
-        m_nDpi(oStyle.m_nDpi), m_UnitMeasure(oStyle.m_UnitMeasure),
+        m_nDpi(oStyle.m_nDpi), m_UnitMeasure(oStyle.m_UnitMeasure), m_bRoundingValues(oStyle.m_bRoundingValues),
         m_pFont(oStyle.m_pFont), m_pMargin(oStyle.m_pMargin), m_pBackground(oStyle.m_pBackground),
         m_pText(oStyle.m_pText), m_pBorder(oStyle.m_pBorder){}
 
@@ -483,6 +485,7 @@ namespace NSCSS
                 }
                 // TEXT
                 CASE(L"text-align"):
+                CASE(L"text-anchor"):
                 {
                     const size_t unPositionImp = pPropertie.second.find(L"!i");
                     if (unPositionImp == std::wstring::npos)
@@ -575,6 +578,7 @@ namespace NSCSS
                     break;
                 }
                 CASE(L"border-width"):
+                CASE(L"stroke-width"):
                 {
                     const size_t unPositionImp = pPropertie.second.find(L"!i");
                     if (unPositionImp == std::wstring::npos)
@@ -607,6 +611,7 @@ namespace NSCSS
                     break;
                 }
                 CASE(L"border-color"):
+                CASE(L"stroke"):
                 {
                     const size_t unPositionImp = pPropertie.second.find(L"!i");
                     if (unPositionImp == std::wstring::npos)
@@ -930,6 +935,42 @@ namespace NSCSS
 
                     break;
                 }
+                CASE(L"opacity"):
+                {
+                        const size_t unPositionImp = pPropertie.second.find(L"!i");
+                        if (unPositionImp == std::wstring::npos)
+                        {
+                            m_pBackground.SetOpacity(pPropertie.second, unLevel, bHardMode);
+                        }
+                        else if (unPositionImp != 0)
+                        {
+                            m_pBackground.SetOpacity(pPropertie.second.substr(0, unPositionImp - 1), unLevel, true);
+                            m_pBackground.SetImportantOpacity(true);
+                        }
+
+//                        if (bIsThereBorder)
+//                            m_pBackground.InBorder();
+
+                        break;
+                }
+                CASE(L"fill-opacity"):
+                {
+                        const size_t unPositionImp = pPropertie.second.find(L"!i");
+                        if (unPositionImp == std::wstring::npos)
+                        {
+                            m_pBackground.SetFillOpacity(pPropertie.second, unLevel, bHardMode);
+                        }
+                        else if (unPositionImp != 0)
+                        {
+                            m_pBackground.SetFillOpacity(pPropertie.second.substr(0, unPositionImp - 1), unLevel, true);
+                            m_pBackground.SetImportantFillOpacity(true);
+                        }
+
+//                        if (bIsThereBorder)
+//                            m_pBackground.InBorder();
+
+                        break;
+                }
             }
         }
     }
@@ -1037,7 +1078,7 @@ namespace NSCSS
                 {
                     const float dValue = wcstof(sValueTemp.substr(0, posPercent).c_str(), NULL) * fPreviousValue / 100;
 
-                    sValueString += std::to_wstring(static_cast<short int>(dValue + 0.5f));
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1046,11 +1087,11 @@ namespace NSCSS
                 }
                 else if (sValueTemp.find(L"px") != std::wstring::npos)
                 {
-                    int nValue = ConvertPx(sValueTemp);
+                    float dValue = ConvertPx(sValueTemp);
 
-                    Scale(nValue, enScalingDirection);
+                    Scale(dValue, enScalingDirection);
 
-                    sValueString += std::to_wstring(nValue);
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1059,11 +1100,11 @@ namespace NSCSS
                 }
                 else if (sValueTemp.find(L"cm") != std::wstring::npos)
                 {
-                    int nValue = ConvertCm(sValueTemp);
+                    float dValue = ConvertCm(sValueTemp);
 
-                    Scale(nValue, enScalingDirection);
+                    Scale(dValue, enScalingDirection);
 
-                    sValueString += std::to_wstring(nValue);
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1072,11 +1113,11 @@ namespace NSCSS
                 }
                 else if (sValueTemp.find(L"mm") != std::wstring::npos)
                 {
-                    int nValue = ConvertMm(sValueTemp);
+                    float dValue = ConvertMm(sValueTemp);
 
-                    Scale(nValue, enScalingDirection);
+                    Scale(dValue, enScalingDirection);
 
-                    sValueString += std::to_wstring(nValue);
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1085,11 +1126,11 @@ namespace NSCSS
                 }
                 else if (sValueTemp.find(L"in") != std::wstring::npos)
                 {       
-                    int nValue = ConvertIn(sValueTemp);
+                    float dValue = ConvertIn(sValueTemp);
 
-                    Scale(nValue, enScalingDirection);
+                    Scale(dValue, enScalingDirection);
 
-                    sValueString += std::to_wstring(nValue);
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1098,11 +1139,11 @@ namespace NSCSS
                 }
                 else if (sValueTemp.find(L"pt") != std::wstring::npos)
                 {
-                    int nValue = ConvertPt(sValueTemp);
+                    float dValue = ConvertPt(sValueTemp);
 
-                    Scale(nValue, enScalingDirection);
+                    Scale(dValue, enScalingDirection);
 
-                    sValueString += std::to_wstring(nValue);
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1111,11 +1152,11 @@ namespace NSCSS
                 }
                 else if (sValueTemp.find(L"pc") != std::wstring::npos)
                 {
-                    int nValue = ConvertPc(sValueTemp);
+                    float dValue = ConvertPc(sValueTemp);
 
-                    Scale(nValue, enScalingDirection);
+                    Scale(dValue, enScalingDirection);
 
-                    sValueString += std::to_wstring(nValue);
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1124,8 +1165,8 @@ namespace NSCSS
                 }
                 else if (sValueTemp.find(L"em") != std::wstring::npos)
                 {
-                    const float fValue = wcstof(sValueTemp.c_str(), NULL) * m_pFont.GetSize();
-                    sValueString += std::to_wstring(static_cast<short int>(fValue + 0.5f));
+                    const float dValue = wcstof(sValueTemp.c_str(), NULL) * m_pFont.GetSize();
+                    sValueString += std::to_wstring((m_bRoundingValues) ? static_cast<int>(dValue + 0.5f) : dValue);
 
                     if (sValueTemp.find(L';') != std::wstring::npos)
                         sValueString += L';';
@@ -1149,23 +1190,28 @@ namespace NSCSS
             return sValueString;
         }
 
-        void CCompiledStyle::Scale(int &nValue, ScalingDirection enScalingDirection) const
+        void CCompiledStyle::Scale(float &dValue, ScalingDirection enScalingDirection) const
         {
                 if (ScalingDirectionNone == enScalingDirection)
                         return;
                 else if (ScalingDirectionX == enScalingDirection && 0 != m_oSourceWindow.m_ushWidth &&
                     0 != m_oDeviceWindow.m_ushWidth && m_oSourceWindow.m_ushWidth != m_oDeviceWindow.m_ushWidth)
                 {
-                        nValue = static_cast<int>((double)nValue / m_oSourceWindow.m_ushWidth * m_oDeviceWindow.m_ushWidth + 0.5f);
+                        dValue = dValue / m_oSourceWindow.m_ushWidth * m_oDeviceWindow.m_ushWidth;
                 }
                 else if (ScalingDirectionY == enScalingDirection && 0 != m_oSourceWindow.m_ushHeight &&
                          0 != m_oDeviceWindow.m_ushHeight && m_oSourceWindow.m_ushHeight != m_oDeviceWindow.m_ushHeight)
                 {
-                        nValue = static_cast<int>((double)nValue / m_oSourceWindow.m_ushHeight * m_oDeviceWindow.m_ushHeight + 0.5f);
-                }
+                        dValue = dValue / m_oSourceWindow.m_ushHeight * m_oDeviceWindow.m_ushHeight;
+                        }
         }
 
-        int CCompiledStyle::ConvertPx(const std::wstring& sValue) const
+        void CCompiledStyle::SetRoundingValues(bool bValue)
+        {
+                m_bRoundingValues = bValue;
+        }
+
+        float CCompiledStyle::ConvertPx(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1176,7 +1222,7 @@ namespace NSCSS
             switch (m_UnitMeasure)
             {
                 case Pixel:
-                    return static_cast<int>(dValue);
+                    return dValue;
                 case Default:
                 case Point:
                     return ConvertPxToPt(dValue);
@@ -1193,33 +1239,32 @@ namespace NSCSS
             return 0;
         }
 
-        int CCompiledStyle::ConvertPxToCm(const float& dValue) const
+        float CCompiledStyle::ConvertPxToCm(const float& dValue) const
         {
-            return static_cast<int>(dValue / m_nDpi * 2.54f);
+            return dValue / m_nDpi * 2.54f;
         }
 
-        int CCompiledStyle::ConvertPxToIn(const float& dValue) const
+        float CCompiledStyle::ConvertPxToIn(const float& dValue) const
         {
-            return static_cast<int>(1.0f / static_cast<float>(m_nDpi) * dValue + 0.5f);
+            return 1.0f / static_cast<float>(m_nDpi) * dValue;
         }
 
-        int CCompiledStyle::ConvertPxToMm(const float& dValue) const
+        float CCompiledStyle::ConvertPxToMm(const float& dValue) const
         {
-            return static_cast<int>(dValue / static_cast<float>(m_nDpi) * 25.4f + 0.5f);
+            return dValue / static_cast<float>(m_nDpi) * 25.4f;
         }
 
-        int CCompiledStyle::ConvertPxToPc(const float& dValue) const
+        float CCompiledStyle::ConvertPxToPc(const float& dValue) const
         {
-
-            return static_cast<int>(0.16667f / static_cast<float>(m_nDpi) * dValue + 0.5f);
+            return 0.16667f / static_cast<float>(m_nDpi) * dValue;
         }
 
-        int CCompiledStyle::ConvertPxToPt(const float& dValue) const
+        float CCompiledStyle::ConvertPxToPt(const float& dValue) const
         {
-            return static_cast<int>(72.0f /  static_cast<float>(m_nDpi) * dValue + 0.5f);
+            return 72.0f /  static_cast<float>(m_nDpi) * dValue;
         }
 
-        int CCompiledStyle::ConvertCm(const std::wstring& sValue) const
+        float CCompiledStyle::ConvertCm(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1235,7 +1280,7 @@ namespace NSCSS
                 case Pixel:
                     return ConvertCmToPx(dValue);
                 case Cantimeter:
-                    return static_cast<int>(dValue);
+                    return dValue;
                 case Millimeter:
                     return ConvertCmToMm(dValue);
                 case Inch:
@@ -1247,32 +1292,32 @@ namespace NSCSS
             return 0;
         }
 
-        int CCompiledStyle::ConvertCmToIn(const float& dValue) const
+        float CCompiledStyle::ConvertCmToIn(const float& dValue) const
         {
-            return static_cast<int>(dValue / 2.54f + 0.5f);
+            return dValue / 2.54f;
         }
 
-        int CCompiledStyle::ConvertCmToMm(const float& dValue) const
+        float CCompiledStyle::ConvertCmToMm(const float& dValue) const
         {
-            return static_cast<int>(dValue * 10.0f + 0.5f);
+            return dValue * 10.0f;
         }
 
-        int CCompiledStyle::ConvertCmToPc(const float& dValue) const
+        float CCompiledStyle::ConvertCmToPc(const float& dValue) const
         {
-            return static_cast<int>(2.36f * dValue + 0.5f);
+            return 2.36f * dValue;
         }
 
-        int CCompiledStyle::ConvertCmToPt(const float& dValue) const
+        float CCompiledStyle::ConvertCmToPt(const float& dValue) const
         {
-            return static_cast<int>(28.35f * dValue + 0.5f);
+            return 28.35f * dValue;
         }
 
-        int CCompiledStyle::ConvertCmToPx(const float& dValue) const
+        float CCompiledStyle::ConvertCmToPx(const float& dValue) const
         {
-            return static_cast<int>(static_cast<float>(m_nDpi) / 2.54f * dValue + 0.5f);
+            return static_cast<float>(m_nDpi) / 2.54f * dValue;
         }
 
-        int CCompiledStyle::ConvertMm(const std::wstring& sValue) const
+        float CCompiledStyle::ConvertMm(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1290,7 +1335,7 @@ namespace NSCSS
                 case Cantimeter:
                     return ConvertMmToCm(dValue);
                 case Millimeter:
-                    return static_cast< int>(dValue);
+                    return dValue;
                 case Inch:
                     return ConvertMmToIn(dValue);
                 case Peak:
@@ -1299,35 +1344,32 @@ namespace NSCSS
             return 0;
         }
 
-        int CCompiledStyle::ConvertMmToIn(const float& dValue) const
+        float CCompiledStyle::ConvertMmToIn(const float& dValue) const
         {
-            return static_cast<int>(dValue / 25.4f + 0.5f);
+            return dValue / 25.4f;
         }
 
-        int CCompiledStyle::ConvertMmToCm(const float& dValue) const
+        float CCompiledStyle::ConvertMmToCm(const float& dValue) const
         {
-
-            return static_cast<int>(dValue / 10.0f + 0.5f);
+            return dValue / 10.0f;
         }
 
-        int CCompiledStyle::ConvertMmToPc(const float& dValue) const
+        float CCompiledStyle::ConvertMmToPc(const float& dValue) const
         {
-            return static_cast<int>(2.8346f * dValue + 0.5f);
+            return 2.8346f * dValue;
         }
 
-        int CCompiledStyle::ConvertMmToPt(const float& dValue) const
+        float CCompiledStyle::ConvertMmToPt(const float& dValue) const
         {
-
-            return static_cast<int>(0.23262f * dValue + 0.5f);
+            return 0.23262f * dValue;
         }
 
-        int CCompiledStyle::ConvertMmToPx(const float& dValue) const
+        float CCompiledStyle::ConvertMmToPx(const float& dValue) const
         {
-
-            return static_cast<int>(static_cast<float>(m_nDpi) / 25.4f * dValue + 0.5f);
+            return static_cast<float>(m_nDpi) / 25.4f * dValue;
         }
 
-        int CCompiledStyle::ConvertIn(const std::wstring& sValue) const
+        float CCompiledStyle::ConvertIn(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1347,42 +1389,39 @@ namespace NSCSS
                 case Millimeter:
                     return ConvertInToMm(dValue);
                 case Inch:
-                    return static_cast<int>(dValue);
+                    return dValue;
                 case Peak:
                     return ConvertInToPc(dValue);
             }
             return 0;
         }
 
-        int CCompiledStyle::ConvertInToMm(const float& dValue) const
+        float CCompiledStyle::ConvertInToMm(const float& dValue) const
         {
-            return static_cast<int>(dValue * 25.4f + 0.5f);
+            return dValue * 25.4f;
         }
 
-        int CCompiledStyle::ConvertInToCm(const float& dValue) const
+        float CCompiledStyle::ConvertInToCm(const float& dValue) const
         {
-
-            return static_cast<int>(dValue * 2.54f + 0.5f);
+            return dValue * 2.54f;
         }
 
-        int CCompiledStyle::ConvertInToPc(const float& dValue) const
+        float CCompiledStyle::ConvertInToPc(const float& dValue) const
         {
-
-            return static_cast<int>(dValue / 72.0f + 0.5f);
+            return dValue / 72.0f;
         }
 
-        int CCompiledStyle::ConvertInToPt(const float& dValue) const
+        float CCompiledStyle::ConvertInToPt(const float& dValue) const
         {
-
-            return static_cast<int>(dValue / 6.0f + 0.5f);
+            return dValue / 6.0f;
         }
 
-        int CCompiledStyle::ConvertInToPx(const float& dValue) const
+        float CCompiledStyle::ConvertInToPx(const float& dValue) const
         {
-            return static_cast<short int>(dValue * static_cast<float>(m_nDpi) + 0.5f);
+            return dValue * static_cast<float>(m_nDpi);
         }
 
-        int CCompiledStyle::ConvertPt(const std::wstring& sValue) const
+        float CCompiledStyle::ConvertPt(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1396,7 +1435,7 @@ namespace NSCSS
                     return ConvertPtToPx(dValue);
                 case Default:
                 case Point:
-                        return static_cast<int>(dValue + 0.5f);
+                        return dValue;
                 case Cantimeter:
                     return ConvertPtToCm(dValue);
                 case Millimeter:
@@ -1410,32 +1449,32 @@ namespace NSCSS
             return 0;
         }
 
-        int CCompiledStyle::ConvertPtToIn(const float& dValue) const
+        float CCompiledStyle::ConvertPtToIn(const float& dValue) const
         {
-            return static_cast<int>(dValue / 72.0f + 0.5f);
+            return dValue / 72.0f;
         }
 
-        int CCompiledStyle::ConvertPtToCm(const float& dValue) const
+        float CCompiledStyle::ConvertPtToCm(const float& dValue) const
         {
-            return static_cast<int>(dValue * 0.03528f + 0.5f);
+            return dValue * 0.03528f;
         }
 
-        int CCompiledStyle::ConvertPtToPc(const float& dValue) const
+        float CCompiledStyle::ConvertPtToPc(const float& dValue) const
         {
-            return static_cast<int>(dValue / 12.0f + 0.5f);
+            return dValue / 12.0f;
         }
 
-        int CCompiledStyle::ConvertPtToMm(const float& dValue) const
+        float CCompiledStyle::ConvertPtToMm(const float& dValue) const
         {
-            return static_cast<int>(dValue * 0.3528f + 0.5f);
+            return dValue * 0.3528f;
         }
 
-        int CCompiledStyle::ConvertPtToPx(const float& dValue) const
+        float CCompiledStyle::ConvertPtToPx(const float& dValue) const
         {
-            return static_cast<short int>(static_cast<float>(m_nDpi) / 72.0f * dValue + 0.5f);
+            return static_cast<float>(m_nDpi) / 72.0f * dValue;
         }
 
-        int CCompiledStyle::ConvertPc(const std::wstring& sValue) const
+        float CCompiledStyle::ConvertPc(const std::wstring& sValue) const
         {
             if (sValue.empty())
                 return 0;
@@ -1457,35 +1496,35 @@ namespace NSCSS
                 case Inch:
                     return ConvertPcToIn(dValue);
                 case Peak:
-                    return static_cast<int>(dValue);
+                    return dValue;
             }
 
             return 0;
         }
 
-        int CCompiledStyle::ConvertPcToIn(const float& dValue) const
+        float CCompiledStyle::ConvertPcToIn(const float& dValue) const
         {
-            return static_cast<int>(dValue / 6.0f + 0.5f);
+            return dValue / 6.0f;
         }
 
-        int CCompiledStyle::ConvertPcToCm(const float& dValue) const
+        float CCompiledStyle::ConvertPcToCm(const float& dValue) const
         {
-            return static_cast<int>(dValue * 0.423f + 0.5f);
+            return dValue * 0.423f;
         }
 
-        int CCompiledStyle::ConvertPcToPt(const float& dValue) const
+        float CCompiledStyle::ConvertPcToPt(const float& dValue) const
         {
-            return static_cast<int>(dValue * 12.0f + 0.5f);
+            return dValue * 12.0f;
         }
 
-        int CCompiledStyle::ConvertPcToMm(const float& dValue) const
+        float CCompiledStyle::ConvertPcToMm(const float& dValue) const
         {
-            return static_cast<int>(dValue * 4.23f + 0.5f);
+            return dValue * 4.23f;
         }
 
-        int CCompiledStyle::ConvertPcToPx(const float& dValue) const
+        float CCompiledStyle::ConvertPcToPx(const float& dValue) const
         {
-            return static_cast<int>(static_cast<float>(m_nDpi) / 6.0f * dValue + 0.5f);
+            return static_cast<float>(m_nDpi) / 6.0f * dValue;
         }
     }
 

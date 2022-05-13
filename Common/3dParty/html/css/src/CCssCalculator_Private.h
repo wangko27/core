@@ -30,6 +30,8 @@ namespace NSCSS
         CSizeWindow m_oSourceWindow;
         CSizeWindow m_oDeviceWindow;
 
+        bool m_bRoundingValues;
+
         void GetStylesheet(const KatanaStylesheet* oStylesheet);
         void GetRule(const KatanaRule* oRule);
 
@@ -61,6 +63,8 @@ namespace NSCSS
 
         void SetSizeSourceWindow(const CSizeWindow& oSizeWindow);
         void SetSizeDeviceWindow(const CSizeWindow& oSizeWindow);
+
+        void SetRoundingValues(bool bValue);
 
         UnitMeasure GetUnitMeasure() const;
         std::wstring GetEncoding() const;
