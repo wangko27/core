@@ -98,10 +98,13 @@ public:
 					pos_si += m_arrSIs[ind].lCount;
 					ind++;
 				}
-				if (ind >= m_arrSIs.size()) break;
-				if (m_arrSIs[ind].bLang)
-					pText->m_arParagraphs[i].m_arSpans[j].m_oRun.Language = m_arrSIs[ind].Lang;
-				pos_text += pText->m_arParagraphs[i].m_arSpans[j].m_strText.length() ;
+                if (ind >= m_arrSIs.size()) break;
+                if (m_arrSIs[ind].bLang)
+                    pText->m_arParagraphs[i].m_arSpans[j].m_oRun.Language = m_arrSIs[ind].Lang;
+                if (m_arrSIs[ind].bAltLang)
+                    pText->m_arParagraphs[i].m_arSpans[j].m_oRun.AltLanguage = m_arrSIs[ind].AltLang;
+
+                pos_text += pText->m_arParagraphs[i].m_arSpans[j].m_strText.length() ;
 			}
 
 		}

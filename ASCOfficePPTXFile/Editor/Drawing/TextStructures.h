@@ -187,6 +187,7 @@ namespace PPT_FORMAT
 
 		NSCommon::nullable_base<WORD>	Cap;				// 0 - none, 1 - TEXT, 2 - text
 		NSCommon::nullable_base<WORD>	Language;
+        NSCommon::nullable_base<WORD>	AltLanguage;
 
         CFontProperties			font;
 
@@ -223,6 +224,7 @@ namespace PPT_FORMAT
 			Cap				= oSrc.Cap;
 
             Language		= oSrc.Language;
+            AltLanguage		= oSrc.AltLanguage;
 			return *this;
 		}
 		~CTextCFRun()
@@ -252,7 +254,8 @@ namespace PPT_FORMAT
 			if (!font.ea.is_init())			font.ea		= oSrc.font.ea;
 			if (!font.sym.is_init())		font.sym	= oSrc.font.sym;
 
-			if (!Language.is_init())		Language = oSrc.Language;
+            if (!Language.is_init())		Language = oSrc.Language;
+            if (!AltLanguage.is_init())		AltLanguage = oSrc.AltLanguage;
 		}
 		AVSINLINE void ApplyAfter(const CTextCFRun& oSrc)
 		{
@@ -277,8 +280,9 @@ namespace PPT_FORMAT
 
             if (oSrc.Color.is_init())			Color = oSrc.Color;
 			if (oSrc.Size.is_init())			Size = oSrc.Size;
-			if (oSrc.Cap.is_init())				Cap = oSrc.Cap;
-			if (oSrc.Language.is_init())		Language = oSrc.Language;
+            if (oSrc.Cap.is_init())				Cap = oSrc.Cap;
+            if (oSrc.Language.is_init())		Language = oSrc.Language;
+            if (oSrc.AltLanguage.is_init())		AltLanguage = oSrc.AltLanguage;
 			
 			if (oSrc.font.ansi.is_init())		font.ansi = oSrc.font.ansi;
 			if (oSrc.font.ea.is_init())			font.ea = oSrc.font.ea;

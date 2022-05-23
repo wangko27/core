@@ -1244,12 +1244,27 @@ void PPT_FORMAT::CShapeWriter::WriteTextInfo(PPT_FORMAT::CTextCFRun* pLastCF)
                     m_oWriter.WriteString(std::wstring(L"<a:r><a:rPr"));
                 }
             }
+            if (pCF->Language.is_init() && pCF->AltLanguage.is_init()
+                    && pCF->AltLanguage.get() == 1033 /*England*/)
+            {
+                std::swap(pCF->Language.get(), pCF->AltLanguage.get());
+            }
             if (pCF->Language.is_init())
             {
                 std::wstring str_lang = msLCID2wstring(pCF->Language.get());
 
                 if (str_lang.length() > 0)
                     m_oWriter.WriteString(std::wstring(L" lang=\"") + str_lang + _T("\""));
+            } else
+            {
+                m_oWriter.WriteString(std::wstring(L" lang=\"") + L"en-US" + _T("\""));
+            }
+            if (pCF->AltLanguage.is_init())
+            {
+                std::wstring str_altlang = msLCID2wstring(pCF->AltLanguage.get());
+
+                if (str_altlang.length() > 0)
+                    m_oWriter.WriteString(std::wstring(L" altLang=\"") + str_altlang + _T("\""));
             }
             if ((pCF->Size.is_init()) && (pCF->Size.get() > 0) && (pCF->Size.get() < 4001))
             {
