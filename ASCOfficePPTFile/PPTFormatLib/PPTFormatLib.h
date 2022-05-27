@@ -45,14 +45,12 @@ namespace POLE
 	class Storage;
 }
 
+namespace PPT
+{
 class COfficePPTFile 
 {
 public:
-    COfficePPTFile()
-	{
-		m_pReader = NULL;
-		m_Status = 0;
-	}
+    COfficePPTFile();
     ~COfficePPTFile();
 
     HRESULT put_TempDirectory(std::wstring sDir)
@@ -82,4 +80,4 @@ private:
 
 	std::wstring GetDirectory(std::wstring strFileName);
 };
-
+}

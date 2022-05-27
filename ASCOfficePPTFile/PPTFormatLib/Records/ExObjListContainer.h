@@ -30,22 +30,46 @@
  *
  */
 #pragma once
-#include "../Reader/Records.h"
 
-class CRecordExObjListContainer : public CRecordsContainer
+#include "../Basic/record.h"
+
+namespace PPT
+{
+class ExObjListAtom : public UnknownRecord
 {
 public:
+    int exObjIdSeed{-1};
+
+    virtual void ReadFromStream(const RecordHeader &oHeader, POLE::Stream *pStream) override
+    {
+        exObjIdSeed = StreamUtils::ReadLONG(pStream);
+    }
+};
+
+class ExObjListContainer : public UnknownRecord
+{
+public:
+    ExObjListAtom exObjListAtom;
+    ArrRecords rgChildRec;  // ExObjListSubContainer
+
 	
-	CRecordExObjListContainer()
+    ExObjListContainer()
 	{
 	}
 
-	~CRecordExObjListContainer()
+    ~ExObjListContainer()
 	{
 	}
 
-	virtual void ReadFromStream(SRecordHeader & oHeader, POLE::Stream* pStream)
+    void ReadFromStream(const RecordHeader & oHeader, POLE::Stream* pStream) override
 	{
-		CRecordsContainer::ReadFromStream(oHeader, pStream);
+        rh = oHeader;
+        RecordHeader rrh = GetReadRecordHeader(pStream);
+        exObjListAtom.ReadFromStream(rrh, pStream);
+
+        auto countError = ReadSeveralRecords(rgChildRec, rrh.recLen - 12, pStream);
+        if (countError)
+            std::cerr << rrh.Name() << " - has broken records(count): " << countError << "\n";
 	}
 };
+}

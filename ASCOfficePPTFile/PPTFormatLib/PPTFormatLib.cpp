@@ -47,6 +47,12 @@
     #define NULLMODE 0
 #endif
 
+using namespace PPT;
+
+COfficePPTFile::COfficePPTFile() :
+    m_Status(0), m_pReader(nullptr)
+{}
+
 COfficePPTFile::~COfficePPTFile()
 {
     CloseFile();

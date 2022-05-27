@@ -27,6 +27,10 @@ DEFINES +=  UNICODE \
         #DISABLE_FILE_DOWNLOADER
 
 HEADERS += \
+    ../Basic/record.h \
+    ../Basic/recordheader.h \
+    ../Basic/streamcontrol.h \
+    ../Basic/types.h \
     ../Enums/RecordType.h \
     ../Enums/_includer.h \
     ../Enums/enums.h \
@@ -297,5 +301,8 @@ SOURCES += \
     ../../../ASCOfficePPTXFile/Editor/Drawing/Elements.cpp \
     ../../../ASCOfficePPTXFile/Editor/Drawing/TextAttributesEx.cpp \
     ../../../Common/3dParty/pole/pole.cpp \
+    ../Basic/record.cpp \
+    ../Basic/recordheader.cpp \
+    ../Basic/streamcontrol.cpp \
     ../PPTXWriter/BulletsConverter.cpp
 

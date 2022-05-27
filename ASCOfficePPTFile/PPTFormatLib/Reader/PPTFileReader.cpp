@@ -49,13 +49,15 @@
 #define ENCRYPTED_SUMMARY_STREAM	L"EncryptedSummary" 
 #define DOCUMENT_SUMMARY_STREAM		L"DocumentSummaryInformation"
 
+using namespace PPT;
+
 CPPTFileReader::CPPTFileReader(POLE::Storage *pStorage, std::wstring strTemp):
-	   m_pStorage(pStorage),  
-       m_bIsPPTFile(false),
-	   m_nPresentationCodePage(1250),
-	   m_pDocumentStream(),  m_pPictureStream(), m_pDocumentSummaryStream(), m_pEncryptedSummaryStream(),
-	   m_strTmpDirectory(strTemp),
-	   m_oDocumentInfo()
+    m_pDocumentStream(),  m_pPictureStream(), m_pDocumentSummaryStream(), m_pEncryptedSummaryStream(),
+    m_bIsPPTFile(false),
+    m_pStorage(pStorage),
+    m_strTmpDirectory(strTemp),
+    m_oDocumentInfo(),
+    m_nPresentationCodePage(1250)
 { 
 	m_bDualStorage = false;
 
