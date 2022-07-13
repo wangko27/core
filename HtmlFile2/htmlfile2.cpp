@@ -1202,13 +1202,13 @@ private:
                 wsTable += L"<w:tblCellMar>";
 
                 if (0 < oStyle.m_pMargin.GetTopSide())
-                        wsTable += L"<w:top w:w=\"" + std::to_wstring(static_cast<short int>(oStyle.m_pMargin.GetTopSide() * 10 + 0.5f)) + L"\" w:type=\"dxa\"/>";
+                        wsTable += L"<w:top w:w=\"" + std::to_wstring(static_cast<short int>(oStyle.m_pMargin.GetTopSide() * 20 + 0.5f)) + L"\" w:type=\"dxa\"/>";
 
 //                if (0 < oStyle.m_pMargin.GetLeftSide())
 //                        wsTable += L"<w:left w:w=\"" + std::to_wstring(static_cast<short int>(oStyle.m_pMargin.GetLeftSide() * 10 + 0.5f)) + L"\" w:type=\"dxa\"/>";
 
                 if (0 < oStyle.m_pMargin.GetBottomSide())
-                        wsTable += L"<w:bottom w:w=\"" + std::to_wstring(static_cast<short int>(oStyle.m_pMargin.GetBottomSide() * 10 + 0.5f)) + L"\" w:type=\"dxa\"/>";
+                        wsTable += L"<w:bottom w:w=\"" + std::to_wstring(static_cast<short int>(oStyle.m_pMargin.GetBottomSide() * 20 + 0.5f)) + L"\" w:type=\"dxa\"/>";
 
 //                if (0 < oStyle.m_pMargin.GetRightSide())
 //                        wsTable += L"<w:right w:w=\"" + std::to_wstring(static_cast<short int>(oStyle.m_pMargin.GetRightSide() * 10 + 0.5f)) + L"\" w:type=\"dxa\"/>";

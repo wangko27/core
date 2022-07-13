@@ -1112,6 +1112,41 @@ namespace NSCSS
                             fLeftSide   == oMargin.fLeftSide;
                 }
 
+                void Clear()
+                {
+                        ClearImportants();
+                        fTopSide = fRightSide = fBottomSide = fLeftSide = fNoneValue;
+                        arLevels = {0, 0, 0, 0};
+                }
+
+                void ClearTopSide()
+                {
+                        bImportants[0] = false;
+                        fTopSide = fNoneValue;
+                        arLevels[0] = 0;
+                }
+
+                void ClearRightSide()
+                {
+                        bImportants[1] = false;
+                        fRightSide = fNoneValue;
+                        arLevels[1] = 0;
+                }
+
+                void ClearBottomSide()
+                {
+                        bImportants[2] = false;
+                        fBottomSide = fNoneValue;
+                        arLevels[2] = 0;
+                }
+
+                void ClearLeftSide()
+                {
+                        bImportants[3] = false;
+                        fLeftSide = fNoneValue;
+                        arLevels[3] = 0;
+                }
+
                 bool Empty() const
                 {
                     return fTopSide == fNoneValue && fRightSide == fNoneValue && fBottomSide == fNoneValue && fLeftSide == fNoneValue;
