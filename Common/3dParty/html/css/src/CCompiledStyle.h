@@ -24,49 +24,49 @@ namespace NSCSS
 
         std::wstring ConvertUnitMeasure(const std::wstring& sValue, const float& fPreviousValue, ScalingDirection enScalingDirection = ScalingDirectionNone) const;
 
-        void Scale(int &nValue, ScalingDirection enScalingDirection) const;
+        void Scale(double &dValue, ScalingDirection enScalingDirection) const;
 
-        int ConvertPx(const std::wstring& sValue) const;
-        int ConvertPxToCm(const float& dValue) const;
-        int ConvertPxToIn(const float& dValue) const;
-        int ConvertPxToMm(const float& dValue) const;
-        int ConvertPxToPt(const float& dValue) const;
-        int ConvertPxToPc(const float& dValue) const;
+        double ConvertPx(const std::wstring& sValue) const;
+        double ConvertPxToCm(const float& dValue) const;
+        double ConvertPxToIn(const float& dValue) const;
+        double ConvertPxToMm(const float& dValue) const;
+        double ConvertPxToPt(const float& dValue) const;
+        double ConvertPxToPc(const float& dValue) const;
 
-        int ConvertCm(const std::wstring& sValue) const;
-        int ConvertCmToPx(const float& dValue) const;
-        int ConvertCmToIn(const float& dValue) const;
-        int ConvertCmToMm(const float& dValue) const;
-        int ConvertCmToPt(const float& dValue) const;
-        int ConvertCmToPc(const float& dValue) const;
+        double ConvertCm(const std::wstring& sValue) const;
+        double ConvertCmToPx(const float& dValue) const;
+        double ConvertCmToIn(const float& dValue) const;
+        double ConvertCmToMm(const float& dValue) const;
+        double ConvertCmToPt(const float& dValue) const;
+        double ConvertCmToPc(const float& dValue) const;
 
-        int ConvertMm(const std::wstring& sValue) const;
-        int ConvertMmToPx(const float& dValue) const;
-        int ConvertMmToIn(const float& dValue) const;
-        int ConvertMmToCm(const float& dValue) const;
-        int ConvertMmToPt(const float& dValue) const;
-        int ConvertMmToPc(const float& dValue) const;
+        double ConvertMm(const std::wstring& sValue) const;
+        double ConvertMmToPx(const float& dValue) const;
+        double ConvertMmToIn(const float& dValue) const;
+        double ConvertMmToCm(const float& dValue) const;
+        double ConvertMmToPt(const float& dValue) const;
+        double ConvertMmToPc(const float& dValue) const;
 
-        int ConvertIn(const std::wstring& sValue) const;
-        int ConvertInToPx(const float& dValue) const;
-        int ConvertInToMm(const float& dValue) const;
-        int ConvertInToCm(const float& dValue) const;
-        int ConvertInToPt(const float& dValue) const;
-        int ConvertInToPc(const float& dValue) const;
+        double ConvertIn(const std::wstring& sValue) const;
+        double ConvertInToPx(const float& dValue) const;
+        double ConvertInToMm(const float& dValue) const;
+        double ConvertInToCm(const float& dValue) const;
+        double ConvertInToPt(const float& dValue) const;
+        double ConvertInToPc(const float& dValue) const;
 
-        int ConvertPt(const std::wstring& sValue) const;
-        int ConvertPtToPx(const float& dValue) const;
-        int ConvertPtToMm(const float& dValue) const;
-        int ConvertPtToCm(const float& dValue) const;
-        int ConvertPtToIn(const float& dValue) const;
-        int ConvertPtToPc(const float& dValue) const;
+        double ConvertPt(const std::wstring& sValue) const;
+        double ConvertPtToPx(const float& dValue) const;
+        double ConvertPtToMm(const float& dValue) const;
+        double ConvertPtToCm(const float& dValue) const;
+        double ConvertPtToIn(const float& dValue) const;
+        double ConvertPtToPc(const float& dValue) const;
 
-        int ConvertPc(const std::wstring& sValue) const;
-        int ConvertPcToPx(const float& dValue) const;
-        int ConvertPcToMm(const float& dValue) const;
-        int ConvertPcToCm(const float& dValue) const;
-        int ConvertPcToIn(const float& dValue) const;
-        int ConvertPcToPt(const float& dValue) const;
+        double ConvertPc(const std::wstring& sValue) const;
+        double ConvertPcToPx(const float& dValue) const;
+        double ConvertPcToMm(const float& dValue) const;
+        double ConvertPcToCm(const float& dValue) const;
+        double ConvertPcToIn(const float& dValue) const;
+        double ConvertPcToPt(const float& dValue) const;
 
     public:
 
