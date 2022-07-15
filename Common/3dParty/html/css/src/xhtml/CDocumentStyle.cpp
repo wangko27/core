@@ -279,7 +279,7 @@ namespace NSCSS
             sSpacingValue += L"w:afterAutospacing=\"1\" w:after=\""  + oStyle.m_pMargin.GetTopSideW() + L"\" ";
             sSpacingValue += L"w:beforeAutospacing=\"1\" w:before=\"" + oStyle.m_pMargin.GetTopSideW() + L"\" ";
         }
-        else/* if (!oStyle.m_pBorder.Empty() || !oStyle.m_pMargin.GetPermission())*/
+        else if (!oStyle.m_pBorder.Empty() || !oStyle.m_pMargin.GetPermission())
                 sSpacingValue += L"w:after=\"0\" w:before=\"0\"";
 
         const std::wstring &sLineHeight = oStyle.m_pFont.GetLineHeight();

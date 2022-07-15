@@ -239,19 +239,13 @@ namespace NSCSS
 
                     if (unPositionImp == std::wstring::npos)
                     {
-                        float fValue = wcstof(ConvertUnitMeasure(pPropertie.second, m_pFont.GetSize()).c_str(), NULL);
-
-                        if (m_pFont.GetSize() == fValue || bIsThereBorder)
-                                fValue *= 1.2;
+                        float fValue = wcstof(ConvertUnitMeasure(pPropertie.second, 24).c_str(), NULL);
 
                         m_pFont.SetLineHeight(std::to_wstring(fValue * dCoefficient), unLevel, bHardMode);
                     }
                     else if (unPositionImp != 0)
                     {
-                        float fValue = wcstof(ConvertUnitMeasure(pPropertie.second.substr(0, unPositionImp - 1), m_pFont.GetSize()).c_str(), NULL);
-
-                        if (m_pFont.GetSize() == fValue || bIsThereBorder)
-                                fValue *= 1.2;
+                        float fValue = wcstof(ConvertUnitMeasure(pPropertie.second.substr(0, unPositionImp - 1), 24).c_str(), NULL);
 
                         m_pFont.SetLineHeight(std::to_wstring(fValue * dCoefficient), unLevel, true);
                         m_pFont.SetImportantenLineHeight(true);
@@ -283,6 +277,7 @@ namespace NSCSS
                     break;
                 }
                 CASE(L"margin-top"):
+                CASE(L"margin-block-start"):
                 {
                     if (bIsThereBorder)
                         break;
@@ -305,7 +300,6 @@ namespace NSCSS
                     break;
                 }
                 CASE(L"margin-right"):
-                CASE(L"margin-block-end"):
                 {
                     if (bIsThereBorder)
                         break;
@@ -328,6 +322,7 @@ namespace NSCSS
                     break;
                 }
                 CASE(L"margin-bottom"):
+                CASE(L"margin-block-end"):
                 {
                     if (bIsThereBorder)
                         break;
@@ -350,7 +345,6 @@ namespace NSCSS
                     break;
                 }
                 CASE(L"margin-left"):
-                CASE(L"margin-block-start"):
                 {
                     if (bIsThereBorder)
                         break;
