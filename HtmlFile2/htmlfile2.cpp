@@ -668,7 +668,12 @@ private:
             std::wstring sText = m_oLightReader.GetText();
             size_t find = sText.find_first_not_of(L" \n\t\r");
             if (find == std::wstring::npos)
-                sText = L" ";
+            {
+                if (oXml->GetSubData(oXml->GetCurSize() - 6) != L"</w:r>")
+                    return;
+                else
+                    sText = L" ";
+            }
             else if(!(find == 1 && sText.front() == L' '))
                 sText.erase(0, find);
 
