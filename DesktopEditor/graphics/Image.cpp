@@ -75,6 +75,7 @@ namespace Aggplus
 
 		oFrame.ClearNoAttack();
 	}
+  
 	void CImage::Create(BYTE* pImgData, const DWORD& dwWidth, const DWORD& dwHeight, const long& nStride, bool bExternalBuffer)
 	{
 		m_pImgData = pImgData;

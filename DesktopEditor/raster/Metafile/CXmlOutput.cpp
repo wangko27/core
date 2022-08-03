@@ -3,7 +3,7 @@
 #include "../../../Common/DocxFormat/Source/Base/Base.h"
 
 #ifdef _DEBUG
-    #include <iostream>
+#include <iostream>
 #endif
 
 namespace MetaFile
