@@ -17,6 +17,9 @@ namespace MetaFile
 		CEmfInterpretator(const CEmfInterpretator& oEmfInterpretator, const bool bIsLite = false);
 		virtual ~CEmfInterpretator();
 
+		void CreateConditional(IMetaFileBase*) override {} ;
+		void ChangeConditional() override {};
+
 		InterpretatorType GetType() const override;
 
 		void HANDLE_EMR_HEADER(const TEmfHeader& oTEmfHeader) override ;

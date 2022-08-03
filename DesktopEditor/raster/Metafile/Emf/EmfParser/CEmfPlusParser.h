@@ -13,7 +13,7 @@ namespace MetaFile
 	class CEmfPlusParser : public CEmfParserBase
 	{
 	public:
-		CEmfPlusParser(const CEmfInterpretatorBase *pEmfInterpretator, const TEmfHeader& oHeader);
+		CEmfPlusParser(CEmfInterpretatorBase *pEmfInterpretator, const TEmfHeader& oHeader);
 		virtual ~CEmfPlusParser();
 
 		bool            ReadFromBuffer(BYTE* pBuffer, unsigned int unSize, const bool& bIsExternal = true) override;

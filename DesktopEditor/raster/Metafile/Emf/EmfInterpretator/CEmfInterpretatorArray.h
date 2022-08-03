@@ -21,6 +21,9 @@ namespace MetaFile
 		void AddXmlInterpretator(const wchar_t* wsFilepath);
 		void AddRenderInterpretator(IOutputDevice* pIOutputDevice);
 
+		void CreateConditional(IMetaFileBase* pMetafileBase) override;
+		void ChangeConditional() override;
+
 		InterpretatorType GetType() const override;
 
 		void Begin() override;

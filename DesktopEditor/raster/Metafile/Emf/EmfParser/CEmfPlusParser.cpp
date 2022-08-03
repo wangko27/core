@@ -145,7 +145,7 @@ namespace MetaFile
 		{0x402D, L"EMFPLUS_TRANSLATEWORLDTRANSFORM"}
 	};
 
-	CEmfPlusParser::CEmfPlusParser(const CEmfInterpretatorBase *pEmfInterpretator, const TEmfHeader& oHeader)
+	CEmfPlusParser::CEmfPlusParser(CEmfInterpretatorBase *pEmfInterpretator, const TEmfHeader& oHeader)
 		: m_bBanEmfProcessing(false),
 		  m_unLogicalDpiX(96),
 		  m_unLogicalDpiY(96),
@@ -1412,8 +1412,25 @@ namespace MetaFile
 		if (NULL == pBuffer || 0 == unSize)
 			return;
 
-		Aggplus::CImage oImage;
-		oImage.Decode(pBuffer, unSize);
+		NSFile::CFileBinary oFile;
+
+		const std::wstring wsFilePath = oFile.GetTempPath() + L"/temp.tmp";
+
+		if (!oFile.CreateFileW(wsFilePath))
+			return;
+
+		if (!oFile.WriteFile(pBuffer, unSize))
+		{
+			oFile.CloseFile();
+			return;
+		}
+
+		oFile.CloseFile();
+
+		Aggplus::CImage oImage(wsFilePath);
+
+		if (Aggplus::WrongState == oImage.GetLastStatus())
+			return;
 
 		unsigned int unWidth, unHeight;
 

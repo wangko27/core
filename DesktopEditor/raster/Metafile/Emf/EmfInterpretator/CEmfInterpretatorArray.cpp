@@ -42,6 +42,18 @@ namespace MetaFile
 		m_arInterpretators.push_back(pRenderInterpretator);
 	}
 
+	void CEmfInterpretatorArray::CreateConditional(IMetaFileBase *pMetafileBase)
+	{
+		for (CEmfInterpretatorBase* pInterpretator : m_arInterpretators)
+			pInterpretator->CreateConditional(pMetafileBase);
+	}
+
+	void CEmfInterpretatorArray::ChangeConditional()
+	{
+		for (CEmfInterpretatorBase* pInterpretator : m_arInterpretators)
+			pInterpretator->ChangeConditional();
+	}
+
 	InterpretatorType CEmfInterpretatorArray::GetType() const
 	{
 		return InterpretatorType::Array;
