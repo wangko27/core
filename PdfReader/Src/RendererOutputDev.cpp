@@ -2978,15 +2978,22 @@ namespace PdfReader
                 FunctionShadedFill(pGState, (GfxFunctionShading *) pShading);
                 return true;
             case 2:
-                pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
-                //pGState->clearPath();
+                if (pGState->getStrokeColorSpace()->getMode() == csPattern)
+                {
+                    pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
+                    pGState->moveTo(xmin, ymin);
+                    pGState->lineTo(xmin, ymax);
+                }
+                else
+                {
+                    pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
 
-
-                pGState->moveTo(xmin, ymin);
-                pGState->lineTo(xmin, ymax);
-                pGState->lineTo(xmax, ymax);
-                pGState->lineTo(xmax, ymin);
-                pGState->closePath();
+                    pGState->moveTo(xmin, ymin);
+                    pGState->lineTo(xmin, ymax);
+                    pGState->lineTo(xmax, ymax);
+                    pGState->lineTo(xmax, ymin);
+                    pGState->closePath();
+                }
                 AxialShadedFill(pGState, (GfxAxialShading* )pShading);
                 return true;
             case 3:
@@ -3209,8 +3216,13 @@ namespace PdfReader
 
 		if (NSGraphics::IGraphicsRenderer* GRenderer = dynamic_cast<NSGraphics::IGraphicsRenderer*>(m_pRenderer))
 		{
-		    GRenderer->put_BrushGradInfo(info);
-			m_pRenderer->DrawPath(c_nWindingFillMode);
+			GRenderer->put_BrushGradInfo(info);
+			if (pGState->getStrokeColorSpace()->getMode() == csPattern)
+			{
+				m_pRenderer->DrawPath(c_nStroke);
+			}
+			else
+				m_pRenderer->DrawPath(c_nWindingFillMode);
 		}
 
 		m_pRenderer->EndCommand(c_nPathType);
@@ -3531,6 +3543,7 @@ namespace PdfReader
     }
     void RendererOutputDev::clipToStrokePath(GfxState *pGState)
     {
+        // TODO Необходимо реализовать преобразование Stroke Path в области DoPath для shadedFill заливки.
         if (m_bDrawOnlyText)
             return;
 

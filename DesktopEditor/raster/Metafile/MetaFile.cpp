@@ -101,6 +101,7 @@ namespace MetaFile
 			return ((CEmfInterpretatorSvg*)m_oEmfFile.GetEmfParser()->GetInterpretator())->GetFile();
 		}
 	#endif
+		return L"";
 	}
 
 #ifdef METAFILE_SUPPORT_WMF_EMF
