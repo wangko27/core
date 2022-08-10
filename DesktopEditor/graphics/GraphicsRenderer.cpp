@@ -868,6 +868,7 @@ HRESULT CGraphicsRenderer::DrawPath(const LONG& nType)
 
 	LONG lFillType = (nType & 0xFF00);
 	INT bIsStroke = (0x01 == (nType & 0x01));
+	INT bIsDrawPathWithBrush = (nType & 0x10);
 
 	switch (lFillType)
 	{
@@ -979,7 +980,11 @@ HRESULT CGraphicsRenderer::DrawPath(const LONG& nType)
 
 	if (bIsStroke)
 	{
-        m_pRenderer->DrawPath(&m_oPen, m_pPath, m_dGammaStroke);
+		Aggplus::CBrush* pBrush = NULL;
+		if (bIsDrawPathWithBrush)
+			pBrush = CreateBrush(&m_oBrush);
+		m_pRenderer->DrawPath(&m_oPen, m_pPath, m_dGammaStroke, pBrush);
+		RELEASEOBJECT(pBrush);
 	}
 	
 	return S_OK;

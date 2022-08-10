@@ -2978,22 +2978,17 @@ namespace PdfReader
                 FunctionShadedFill(pGState, (GfxFunctionShading *) pShading);
                 return true;
             case 2:
-                if (pGState->getStrokeColorSpace()->getMode() == csPattern)
-                {
-                    pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
-                    pGState->moveTo(xmin, ymin);
-                    pGState->lineTo(xmin, ymax);
-                }
-                else
-                {
-                    pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
+                pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
 
-                    pGState->moveTo(xmin, ymin);
-                    pGState->lineTo(xmin, ymax);
+                pGState->moveTo(xmin, ymin);
+                pGState->lineTo(xmin, ymax);
+
+                if (pGState->getStrokeColorSpace()->getMode() != csPattern)
+                {
                     pGState->lineTo(xmax, ymax);
                     pGState->lineTo(xmax, ymin);
-                    pGState->closePath();
                 }
+                pGState->closePath();
                 AxialShadedFill(pGState, (GfxAxialShading* )pShading);
                 return true;
             case 3:
@@ -3218,9 +3213,7 @@ namespace PdfReader
 		{
 			GRenderer->put_BrushGradInfo(info);
 			if (pGState->getStrokeColorSpace()->getMode() == csPattern)
-			{
-				m_pRenderer->DrawPath(c_nStroke);
-			}
+				m_pRenderer->DrawPath(c_nStroke | 0x10);
 			else
 				m_pRenderer->DrawPath(c_nWindingFillMode);
 		}
@@ -3543,7 +3536,18 @@ namespace PdfReader
     }
     void RendererOutputDev::clipToStrokePath(GfxState *pGState)
     {
-        // TODO Необходимо реализовать преобразование Stroke Path в области DoPath для shadedFill заливки.
+        pGState->clearPath();
+
+        double xmin, xmax, ymin, ymax, xd;
+        pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
+        xd = 0;//pGState->getLineWidth() / 2;
+
+        pGState->moveTo(xmin + xd, ymin);
+        pGState->lineTo(xmin + xd, ymax);
+        pGState->lineTo(xmax - xd, ymax);
+        pGState->lineTo(xmax - xd, ymin);
+        pGState->closePath();
+
         if (m_bDrawOnlyText)
             return;
 
