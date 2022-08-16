@@ -2982,12 +2982,9 @@ namespace PdfReader
 
                 pGState->moveTo(xmin, ymin);
                 pGState->lineTo(xmin, ymax);
+                pGState->lineTo(xmax, ymax);
+                pGState->lineTo(xmax, ymin);
 
-                if (pGState->getStrokeColorSpace()->getMode() != csPattern)
-                {
-                    pGState->lineTo(xmax, ymax);
-                    pGState->lineTo(xmax, ymin);
-                }
                 pGState->closePath();
                 AxialShadedFill(pGState, (GfxAxialShading* )pShading);
                 return true;
@@ -3538,14 +3535,13 @@ namespace PdfReader
     {
         pGState->clearPath();
 
-        double xmin, xmax, ymin, ymax, xd;
+        double xmin, xmax, ymin, ymax;
         pGState->getUserClipBBox(&xmin, &ymin, &xmax, &ymax);
-        xd = 0;//pGState->getLineWidth() / 2;
 
-        pGState->moveTo(xmin + xd, ymin);
-        pGState->lineTo(xmin + xd, ymax);
-        pGState->lineTo(xmax - xd, ymax);
-        pGState->lineTo(xmax - xd, ymin);
+        pGState->moveTo(xmin, ymin);
+        pGState->lineTo(xmin, ymax);
+        pGState->lineTo(xmax, ymax);
+        pGState->lineTo(xmax, ymin);
         pGState->closePath();
 
         if (m_bDrawOnlyText)
