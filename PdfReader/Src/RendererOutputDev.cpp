@@ -3789,26 +3789,27 @@ namespace PdfReader
         // Здесь мы посылаем координаты текста в пунктах
         double dPageHeight = pGState->getPageHeight();
 
-        std::wstring wsUnicodeText;
+		unsigned int nUnicodeCode = 0;
+		unsigned int nUnicodesCount = 0;
 
         bool isCIDFont = pFont->isCIDFont();
 
         if (NULL != oEntry.pCodeToUnicode && nCode < oEntry.unLenUnicode)
         {
-            unsigned short unUnicode = oEntry.pCodeToUnicode[nCode];
-            wsUnicodeText = (wchar_t(unUnicode));
+			nUnicodeCode = (unsigned int)oEntry.pCodeToUnicode[nCode];
+			nUnicodesCount = 1;
         }
         else
         {
             if (isCIDFont)
             {
                 // Значит кодировка была Identity-H или Identity-V, что означает, что иходные коды и есть юникодные значения
-                wsUnicodeText = (wchar_t(nCode));
+				nUnicodeCode = nCode;
+				nUnicodesCount = 1;
             }
             else
             {
                 // Договорились, что если нельзя точно составить юникодные значения, тогда отдаем NULL
-                wsUnicodeText = L"";
             }
         }
 
@@ -3824,7 +3825,7 @@ namespace PdfReader
         else
         {
             if ((isCIDFont && (((GfxCIDFont*)pFont)->usesIdentityEncoding() || ((GfxCIDFont*)pFont)->usesIdentityCIDToGID()))
-                || (!isCIDFont && wsUnicodeText.empty()))
+				|| (!isCIDFont && 0 == nUnicodesCount))
             {
                 int nCurCode = (0 == nCode ? 65534 : nCode);
                 unGid       = (unsigned int)nCurCode;
@@ -3835,7 +3836,16 @@ namespace PdfReader
         float fAscent = pGState->getFontSize();
         if (nRenderMode == 0 || nRenderMode == 2 || nRenderMode == 4 || nRenderMode == 6)
         {
-            m_pRenderer->CommandDrawTextEx(wsUnicodeText, &unGid, unGidsCount, PDFCoordsToMM(0 + dShiftX), PDFCoordsToMM(dShiftY), PDFCoordsToMM(dDx), PDFCoordsToMM(dDy));
+			//m_pRenderer->CommandDrawTextEx(wsUnicodeText, &unGid, unGidsCount, PDFCoordsToMM(0 + dShiftX), PDFCoordsToMM(dShiftY), PDFCoordsToMM(dDx), PDFCoordsToMM(dDy));
+			if (0 == unGidsCount)
+			{
+				if (nUnicodesCount != 0)
+					m_pRenderer->CommandDrawTextCHAR(nUnicodeCode, PDFCoordsToMM(0 + dShiftX), PDFCoordsToMM(dShiftY), PDFCoordsToMM(dDx), PDFCoordsToMM(dDy));
+			}
+			else
+			{
+				m_pRenderer->CommandDrawTextCHAR2(&nUnicodeCode, 1, unGid, PDFCoordsToMM(0 + dShiftX), PDFCoordsToMM(dShiftY), PDFCoordsToMM(dDx), PDFCoordsToMM(dDy));
+			}
         }
 
         if (nRenderMode == 1 || nRenderMode == 2 || nRenderMode == 5 || nRenderMode == 6)

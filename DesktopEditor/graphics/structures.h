@@ -260,7 +260,6 @@ namespace NSStructures
 	class CBrush
 	{
 	public:
-		int test;
 		struct TSubColor
 		{
 			long color;
@@ -283,11 +282,15 @@ namespace NSStructures
 		Aggplus::RectF Rect;
 		Aggplus::CDoubleRect Bounds;
 
+#ifndef BRUSH_DISABLE_GRADIENTS
 		double LinearAngle;
 		std::vector<TSubColor> m_arrSubColors;
 		NSStructures::GradientInfo m_oGradientInfo;
+#endif
 
 	public:
+
+#ifndef BRUSH_DISABLE_GRADIENTS
 		void LoadSubColors(const std::string &str)
 		{
 			m_arrSubColors.clear();
@@ -317,6 +320,7 @@ namespace NSStructures
 				m_arrSubColors.push_back(subcolor);
 			}
 		}
+#endif
 
 		inline long ConstantCompatible(long nConstant)
 		{
@@ -376,7 +380,7 @@ namespace NSStructures
 			TextureAlpha = dNewAlpha;
 		}
 
-        INT IsEqual(const CBrush *pBrush)
+		INT IsEqual(const CBrush *pBrush)
 		{
 			if (NULL == pBrush)
 				return FALSE;
@@ -385,7 +389,7 @@ namespace NSStructures
 					(Color1 == pBrush->Color1) && (Color2 == pBrush->Color2) &&
 					(Alpha1 == pBrush->Alpha1) && (Alpha2 == pBrush->Alpha2) && (LinearAngle == pBrush->LinearAngle) &&
 					(TexturePath == pBrush->TexturePath) && (TextureAlpha == pBrush->TextureAlpha) && (TextureMode == pBrush->TextureMode) &&
-                    (Rectable == pBrush->Rectable) && (Rect.Equals(pBrush->Rect)));
+					(Rectable == pBrush->Rectable) && (Rect.Equals(pBrush->Rect)));
 		}
 
 		void SetDefaultParams()
@@ -416,7 +420,9 @@ namespace NSStructures
 			Bounds.right = 0;
 			Bounds.bottom = 0;
 
+#ifndef BRUSH_DISABLE_GRADIENTS
 			m_arrSubColors.clear();
+#endif
 		}
 
 	public:
@@ -442,9 +448,11 @@ namespace NSStructures
 
 			Bounds = other.Bounds;
 
+#ifndef BRUSH_DISABLE_GRADIENTS
 			LinearAngle = other.LinearAngle;
 			m_arrSubColors = other.m_arrSubColors;
-            m_oGradientInfo = other.m_oGradientInfo;
+			m_oGradientInfo = other.m_oGradientInfo;
+#endif
 		}
 		CBrush &operator=(const CBrush &other)
 		{
@@ -463,9 +471,11 @@ namespace NSStructures
 			Rect = other.Rect;
 			Bounds = other.Bounds;
 
+#ifndef BRUSH_DISABLE_GRADIENTS
 			LinearAngle = other.LinearAngle;
 			m_arrSubColors = other.m_arrSubColors;
-            m_oGradientInfo = other.m_oGradientInfo;
+			m_oGradientInfo = other.m_oGradientInfo;
+#endif
 
 			return *this;
 		}
@@ -503,7 +513,7 @@ namespace NSStructures
 
 		int FaceIndex;
 
-        int IsEqual(const CFont *pFont)
+		int IsEqual(const CFont *pFont)
 		{
 			if (NULL == pFont)
 				return FALSE;
@@ -513,7 +523,7 @@ namespace NSStructures
 					(Underline == pFont->Underline) && (Strikeout == pFont->Strikeout));
 		}
 
-        int IsEqual2(const CFont *pFont)
+		int IsEqual2(const CFont *pFont)
 		{
 			if (NULL == pFont)
 				return FALSE;
@@ -525,8 +535,8 @@ namespace NSStructures
 				return FALSE;
 
 			return ((FaceIndex == pFont->FaceIndex) && (StringGID == pFont->StringGID) && (Size == pFont->Size) &&
-				(Bold == pFont->Bold) && (Italic == pFont->Italic) &&
-				(Underline == pFont->Underline) && (Strikeout == pFont->Strikeout));
+					(Bold == pFont->Bold) && (Italic == pFont->Italic) &&
+					(Underline == pFont->Underline) && (Strikeout == pFont->Strikeout));
 		}
 
 		long GetStyle() const
@@ -584,18 +594,18 @@ namespace NSStructures
 			return 4;
 		}
 
-        LONG GetTextFontStyle() const
-        {
-            if ((0 == Bold) && (0 == Italic))
-                return 0;
-            if ((0 == Bold) && (1 == Italic))
-                return 1;
-            if ((1 == Bold) && (0 == Italic))
-                return 2;
-            if ((1 == Bold) && (1 == Italic))
-                return 3;
-            return 4;
-        }
+		LONG GetTextFontStyle() const
+		{
+			if ((0 == Bold) && (0 == Italic))
+				return 0;
+			if ((0 == Bold) && (1 == Italic))
+				return 1;
+			if ((1 == Bold) && (0 == Italic))
+				return 2;
+			if ((1 == Bold) && (1 == Italic))
+				return 3;
+			return 4;
+		}
 
 		CFont()
 		{
@@ -607,7 +617,7 @@ namespace NSStructures
 		}
 		CFont &operator=(const CFont &other)
 		{
-            Name = other.Name;
+			Name = other.Name;
 			Path = other.Path;
 			Size = other.Size;
 			Bold = other.Bold;

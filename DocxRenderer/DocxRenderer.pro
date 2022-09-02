@@ -15,6 +15,9 @@ include(../Common/base.pri)
 
 DEFINES += DOCXRENDERER_USE_DYNAMIC_LIBRARY
 
+DEFIINES += \
+    BRUSH_DISABLE_GRADIENTS
+
 ADD_DEPENDENCY(UnicodeConverter, kernel, graphics)
 
 core_windows {

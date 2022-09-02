@@ -422,6 +422,12 @@ HRESULT CDocxRenderer::CommandDrawTextEx(const std::wstring& wsUnicodeText, cons
 {
     return m_pInternal->m_oDocument.CommandDrawTextEx(wsUnicodeText, pGids, nGidsCount, dX, dY, dW, dH);
 }
+HRESULT CDocxRenderer::CommandDrawTextCHAR2(unsigned int* codepoints, const unsigned int& codepointscount, const unsigned int& gid, const double& x, const double& y, const double& w, const double& h)
+{
+	if (!codepoints || !codepointscount)
+		return S_OK; // может есть смысл обработать как пробел хотя бы. чтобы получить ширины. оставлю пока логику, как в CommandDrawTextEx
+	return CommandDrawTextExCHAR(codepoints[0], (LONG)gid, x, y, w, h);
+}
 //----------------------------------------------------------------------------------------
 // Маркеры команд
 //----------------------------------------------------------------------------------------
