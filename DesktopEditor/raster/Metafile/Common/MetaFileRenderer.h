@@ -223,7 +223,7 @@ namespace MetaFile
 
 			m_pRenderer->DrawImage(&oImage, dImageX, dImageY, dImageW, dImageH);
 		}
-		void DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints)
+		void DrawDriverString(NSStringUtils::CStringUTF32& oString, const std::vector<TPointD>& arPoints)
 		{
 			IFont *pFont = m_pFile->GetFont();
 
@@ -267,12 +267,12 @@ namespace MetaFile
 				arGlyphPoint[unIndex].y = (arPoints[unIndex].y * dM22) * m_dScaleY + dY;
 			}
 
-			for (unsigned int unIndex = 0; unIndex < std::min(arPoints.size(), wsString.length()); ++unIndex)
-				m_pRenderer->CommandDrawTextCHAR(wsString[unIndex], arGlyphPoint[unIndex].x, arGlyphPoint[unIndex].y, 0, 0);
+			for (unsigned int unIndex = 0; unIndex < std::min(arPoints.size(), oString.length()); ++unIndex)
+				m_pRenderer->CommandDrawTextCHAR(oString[unIndex], arGlyphPoint[unIndex].x, arGlyphPoint[unIndex].y, 0, 0);
 
 		}
 
-		void DrawString(std::wstring& wsText, unsigned int unCharsCount, double _dX, double _dY, double* pDx, int iGraphicsMode, double dXScale, double dYScale)
+		void DrawString(NSStringUtils::CStringUTF32& oString, double _dX, double _dY, double* pDx, int iGraphicsMode, double dXScale, double dYScale)
 		{
 			CheckEndPath();
 			IFont* pFont = m_pFile->GetFont();
@@ -326,22 +326,22 @@ namespace MetaFile
 			NSFonts::IFontManager* pFontManager = m_pFile->GetFontManager();
 			if (NULL == pFontManager)
 			{
-				if (NULL != pDx && unCharsCount > 1)
+				if (NULL != pDx && oString.length() > 1)
 				{
 					// Тогда мы складываем все pDx кроме последнего символа, последний считаем отдельно
 					double dTempTextW = 0;
-					for (unsigned int unCharIndex = 0; unCharIndex < unCharsCount - 1; unCharIndex++)
+					for (unsigned int unCharIndex = 0; unCharIndex < oString.length() - 1; unCharIndex++)
 					{
 						dTempTextW += pDx[unCharIndex];
 					}
 
-					dTempTextW += dFontHeight * wsText.length();
+					dTempTextW += dFontHeight * oString.length();
 
 					fW = (float)dTempTextW;
 				}
 				else
 				{
-					fW = (float)(dFontHeight * wsText.length());
+					fW = (float)(dFontHeight * oString.length());
 				}
 
 				fH = dFontHeight * 1.2;
@@ -365,21 +365,17 @@ namespace MetaFile
 				}
 				double dFAscent  = dFHeight - std::abs(dFDescent);
 
-				if (NULL != pDx && unCharsCount > 1)
+				if (NULL != pDx && oString.length() > 1)
 				{
 					// Тогда мы складываем все pDx кроме последнего символа, последний считаем отдельно
 					double dTempTextW = 0;
-					for (unsigned int unCharIndex = 0; unCharIndex < unCharsCount - 1; unCharIndex++)
+					for (unsigned int unCharIndex = 0; unCharIndex < oString.length() - 1; unCharIndex++)
 					{
 						dTempTextW += pDx[unCharIndex];
 					}
 					dTempTextW *= m_dScaleX;
 
-					std::wstring wsTempText;
-					wsTempText += wsText.at(wsText.length() - 1);
-					//wsTempText += wsText.at(unCharsCount - 1);
-
-					pFontManager->LoadString1(wsTempText, 0, 0);
+					pFontManager->LoadString1(&oString[oString.length() - 1], 1, 0, 0);
 					TBBox oBox = pFontManager->MeasureString2();
 					dTempTextW += dMmToPt * (oBox.fMaxX - oBox.fMinX);
 
@@ -388,7 +384,7 @@ namespace MetaFile
 				}
 				else
 				{
-					pFontManager->LoadString1(wsText, 0, 0);
+					pFontManager->LoadString1(oString.ToStdWString(), 0, 0);
 					TBBox oBox = pFontManager->MeasureString2();
 					fL = (float)dMmToPt * (oBox.fMinX);
 					fW = (float)dMmToPt * (oBox.fMaxX - oBox.fMinX);
@@ -555,27 +551,19 @@ namespace MetaFile
 
 			if (NULL == pDx)
 			{
-				m_pRenderer->CommandDrawText(wsText, dX, dY, 0, 0);
+				m_pRenderer->CommandDrawText(oString.ToStdWString(), dX, dY, 0, 0);
 			}
 			else
 			{
-				unsigned int unUnicodeLen = 0;
-				unsigned int* pUnicode = NSStringExt::CConverter::GetUtf32FromUnicode(wsText, unUnicodeLen);
-				if (pUnicode && unUnicodeLen)
+				double dOffset = 0;
+				double dKoefX = m_dScaleX;
+				for (unsigned int unCharIndex = 0; unCharIndex < oString.length(); unCharIndex++)
 				{
-					double dOffset = 0;
-					double dKoefX = m_dScaleX;
-					for (unsigned int unCharIndex = 0; unCharIndex < unUnicodeLen; unCharIndex++)
-					{
-						m_pRenderer->CommandDrawTextCHAR(pUnicode[unCharIndex], dX + dOffset, dY, 0, 0);
-						dOffset += (pDx[unCharIndex] * dKoefX);
-					}
-
-					delete[] pUnicode;
+					m_pRenderer->CommandDrawTextCHAR(oString[unCharIndex], dX + dOffset, dY, 0, 0);
+					dOffset += (pDx[unCharIndex] * dKoefX);
 				}
 			}
 			
-
 			if (bChangeCTM)
 				m_pRenderer->ResetTransform();
 		}

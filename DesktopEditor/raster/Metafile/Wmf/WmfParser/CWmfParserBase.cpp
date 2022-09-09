@@ -442,7 +442,16 @@ namespace MetaFile
 				}
 			}
 
-			m_pInterpretator->DrawString(wsText, unCharsCount, dX, dY, pdDx);
+			unsigned int unLen = 0;
+
+			unsigned int *pTempString = NSStringExt::CConverter::GetUtf32FromUnicode(wsText, unLen);
+
+			NSStringUtils::CStringUTF32 oString(pTempString, unLen);
+
+			if (pTempString)
+				delete[] pTempString;
+
+			m_pInterpretator->DrawString(oString, dX, dY, pdDx);
 
 			RELEASEARRAYOBJECTS(pdDx);
 		}

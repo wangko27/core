@@ -1840,9 +1840,16 @@ namespace MetaFile
 			m_oStream.ReadBytes(pString, unGlyphCount);
 		}
 
-		std::wstring wsString;
+		std::wstring wsString = NSStringExt::CConverter::GetUnicodeFromUTF16((unsigned short*)pString, unGlyphCount);
 
-		wsString = NSStringExt::CConverter::GetUnicodeFromUTF16((unsigned short*)pString, unGlyphCount);
+		unsigned int unLen = 0;
+
+		unsigned int *pTempString = NSStringExt::CConverter::GetUtf32FromUnicode(wsString, unLen);
+
+		NSStringUtils::CStringUTF32 oString(pTempString, unLen);
+
+		if (pTempString)
+			delete[] pTempString;
 
 		RELEASEARRAYOBJECTS(pString)
 
@@ -1885,7 +1892,7 @@ namespace MetaFile
 
 			m_pDC->SetTextColor(oColor);
 
-			m_pInterpretator->DrawDriverString(wsString, arDPoints);
+			m_pInterpretator->DrawDriverString(oString, arDPoints);
 
 			m_pDC->SetTextColor(oTextColor);
 		}
@@ -1906,7 +1913,7 @@ namespace MetaFile
 
 			m_pDC->SetTextColor(oColor);
 
-			m_pInterpretator->DrawDriverString(wsString, arDPoints);
+			m_pInterpretator->DrawDriverString(oString, arDPoints);
 
 			m_pDC->SetTextColor(oTextColor);
 		}
@@ -2207,9 +2214,16 @@ namespace MetaFile
 			m_oStream.ReadBytes(pString, unLength);
 		}
 
-		std::wstring wsString;
+		std::wstring wsString = NSStringExt::CConverter::GetUnicodeFromUTF16((unsigned short*)pString, unLength);
 
-		wsString = NSStringExt::CConverter::GetUnicodeFromUTF16((unsigned short*)pString, unLength);
+		unsigned int unLen = 0;
+
+		unsigned int *pTempString = NSStringExt::CConverter::GetUtf32FromUnicode(wsString, unLen);
+
+		NSStringUtils::CStringUTF32 oString(pTempString, unLen);
+
+		if (pTempString)
+			delete[] pTempString;
 
 		RELEASEARRAYOBJECTS(pString)
 
@@ -2237,7 +2251,7 @@ namespace MetaFile
 
 			m_pDC->SetTextColor(oColor);
 
-			m_pInterpretator->DrawString(wsString, wsString.length(), oRect.dX, oRect.dY, NULL, GM_ADVANCED, 1, 1);
+			m_pInterpretator->DrawString(oString, oRect.dX, oRect.dY, NULL, GM_ADVANCED, 1, 1);
 
 			m_pDC->SetTextColor(oTextColor);
 		}
@@ -2258,7 +2272,7 @@ namespace MetaFile
 
 			m_pDC->SetTextColor(oColor);
 
-			m_pInterpretator->DrawString(wsString, wsString.length(), oRect.dX, oRect.dY, NULL, GM_ADVANCED, 1, 1);
+			m_pInterpretator->DrawString(oString, oRect.dX, oRect.dY, NULL, GM_ADVANCED, 1, 1);
 
 			m_pDC->SetTextColor(oTextColor);
 		}

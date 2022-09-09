@@ -477,12 +477,12 @@ void CSvmFile::Read_META_TEXTLANGUAGE()
 
 void CSvmFile::Read_META_STRETCHTEXT()
 {
-	std::wstring sText;
+	NSStringUtils::CStringUTF32 oString;
 	TSvmPoint   startPoint;
 
 	m_oStream >> startPoint;
 
-	parseString(m_oStream, sText, m_currentActionVersion, m_currentCharset);
+	parseString(m_oStream, oString, m_currentActionVersion, m_currentCharset);
 
 	unsigned short	Index;
 	unsigned short	Len;
@@ -504,20 +504,20 @@ void CSvmFile::Read_META_STRETCHTEXT()
 			m_oStream >> nTemp;
 			buf += (wchar_t)nTemp;
 		}
-		sText = buf;
+		oString = buf;
 	}
-	DrawText(sText, sText.length(), startPoint.x + m_oCurrnetOffset.x, startPoint.y + m_oCurrnetOffset.y);
+	DrawText(oString, startPoint.x + m_oCurrnetOffset.x, startPoint.y + m_oCurrnetOffset.y);
 }
 
 
 void CSvmFile::Read_META_TEXT()
 {
-	std::wstring sText;
+	NSStringUtils::CStringUTF32 oString;
 	TSvmPoint   startPoint;
 
 	m_oStream >> startPoint;
 
-	parseString(m_oStream, sText, m_currentActionVersion, m_currentCharset);
+	parseString(m_oStream, oString, m_currentActionVersion, m_currentCharset);
 	
 	//unsigned short index, len;
 	//	
@@ -538,16 +538,16 @@ void CSvmFile::Read_META_TEXT()
 	//	}
 	//	sText = buf;
 	//}
-	DrawText(sText, sText.length(), startPoint.x + m_oCurrnetOffset.x, startPoint.y + m_oCurrnetOffset.y);
+	DrawText(oString, startPoint.x + m_oCurrnetOffset.x, startPoint.y + m_oCurrnetOffset.y);
 }
 void CSvmFile::Read_META_ARRAYTEXT()
 {
-	std::wstring sText;
+	NSStringUtils::CStringUTF32 oString;
 	TSvmPoint   startPoint;
 
 	m_oStream >> startPoint;
 
-	parseString(m_oStream, sText, m_currentActionVersion, m_currentCharset);
+	parseString(m_oStream, oString, m_currentActionVersion, m_currentCharset);
 	
 	unsigned short nIndex, nLen;
 	unsigned int nArrayLen;
@@ -586,7 +586,7 @@ void CSvmFile::Read_META_ARRAYTEXT()
 			tempBuffer += (wchar_t)nTemp;
 		}
 	}
-	DrawText(sText, sText.length(), startPoint.x + m_oCurrnetOffset.x, startPoint.y + m_oCurrnetOffset.y, mpDXAry, nArrayLen);
+	DrawText(oString, startPoint.x + m_oCurrnetOffset.x, startPoint.y + m_oCurrnetOffset.y, mpDXAry, nArrayLen);
 
 	if (mpDXAry)
 		delete []mpDXAry;
@@ -595,10 +595,10 @@ void CSvmFile::Read_META_TEXTRECT()
 {
 	TSvmRect	rect;
 	unsigned short style;
-	std::wstring sText;
+	NSStringUtils::CStringUTF32 oString;
 	
 	m_oStream >> rect;
-	parseString(m_oStream, sText, m_currentActionVersion, m_currentCharset);
+	parseString(m_oStream, oString, m_currentActionVersion, m_currentCharset);
 
 	m_oStream >> style;
 
@@ -606,7 +606,7 @@ void CSvmFile::Read_META_TEXTRECT()
 	{
 
 	}
-	DrawText(sText, sText.length(), rect);
+	DrawText(oString, rect);
 }
 void CSvmFile::Read_META_TEXTALIGN()
 {

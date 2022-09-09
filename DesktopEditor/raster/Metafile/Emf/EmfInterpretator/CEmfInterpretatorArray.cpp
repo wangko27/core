@@ -79,17 +79,17 @@ namespace MetaFile
 			pInterpretator->DrawBitmap(dX, dY, dW, dH, pBuffer, unWidth, unHeight);
 	}
 
-	void CEmfInterpretatorArray::DrawString(std::wstring &wsText, unsigned int unCharsCount, double dX, double dY, double *pDx,
+	void CEmfInterpretatorArray::DrawString(NSStringUtils::CStringUTF32& oString, double dX, double dY, double *pDx,
 											int iGraphicsMode, double dXScale, double dYScale)
 	{
 		for (CEmfInterpretatorBase* pInterpretator : m_arInterpretators)
-			pInterpretator->DrawString(wsText, unCharsCount, dX, dY, pDx, iGraphicsMode, dXScale, dYScale);
+			pInterpretator->DrawString(oString, dX, dY, pDx, iGraphicsMode, dXScale, dYScale);
 	}
 
-	void CEmfInterpretatorArray::DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints)
+	void CEmfInterpretatorArray::DrawDriverString(NSStringUtils::CStringUTF32& oString, const std::vector<TPointD>& arPoints)
 	{
 		for (CEmfInterpretatorBase* pInterpretator : m_arInterpretators)
-			pInterpretator->DrawDriverString(wsString, arPoints);
+			pInterpretator->DrawDriverString(oString, arPoints);
 	}
 
 	void CEmfInterpretatorArray::StartPath()

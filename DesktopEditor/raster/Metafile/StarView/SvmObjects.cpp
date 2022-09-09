@@ -134,7 +134,7 @@ static const char* CodingCharsets[95] =
 };
 namespace MetaFile
 {
-	int parseString(CDataStream &stream, std::wstring &string, unsigned short version, unsigned short charset)
+	int parseString(CDataStream &stream, NSStringUtils::CStringUTF32 &string, unsigned short version, unsigned short charset)
 	{
 		int nRead = 0;
 		if (charset == 0xffff)//RTL_UNICODE
@@ -448,8 +448,14 @@ CDataStream& operator>>(CDataStream &stream, CSvmFont *font)
 	stream >> version;			
 	stream >> totalSize;
 
-	totalRead += parseString(stream, font->sFamilyName, version);
-	totalRead += parseString(stream, font->sStyle, version);
+	NSStringUtils::CStringUTF32 oFamilyName, oStyle;
+
+	totalRead += parseString(stream, oFamilyName, version);
+	totalRead += parseString(stream, oStyle, version);
+
+	//TODO:: возможно стоит перейти в CSvmFont с std::wstring на NSStringUtils::CStringUTF32
+	font->sFamilyName = oFamilyName.ToStdWString();
+	font->sStyle      = oStyle.ToStdWString();
 
 	stream >> font->SizeWidth;		totalRead += 4;
 	stream >> font->SizeHeight;		totalRead += 4;

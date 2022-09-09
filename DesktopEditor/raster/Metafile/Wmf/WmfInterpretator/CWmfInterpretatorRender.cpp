@@ -28,17 +28,17 @@ namespace MetaFile
 			m_pMetaFileRenderer->DrawBitmap(dX, dY, dW, dH, pBuffer, unWidth, unHeight);
 	}
 
-	void CWmfInterpretatorRender::DrawString(std::wstring &wsText, unsigned int unCharsCount, double dX, double dY, double *pDx,
+	void CWmfInterpretatorRender::DrawString(NSStringUtils::CStringUTF32& oString, double dX, double dY, double *pDx,
 											 int iGraphicsMode, double dXScale, double dYScale)
 	{
 		if (NULL != m_pMetaFileRenderer)
-			m_pMetaFileRenderer->DrawString(wsText, unCharsCount, dX, dY, pDx, iGraphicsMode, dXScale, dYScale);
+			m_pMetaFileRenderer->DrawString(oString, dX, dY, pDx, iGraphicsMode, dXScale, dYScale);
 	}
 
-	void CWmfInterpretatorRender::DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints)
+	void CWmfInterpretatorRender::DrawDriverString(NSStringUtils::CStringUTF32& oString, const std::vector<TPointD>& arPoints)
 	{
 		if (NULL != m_pMetaFileRenderer)
-			m_pMetaFileRenderer->DrawDriverString(wsString, arPoints);
+			m_pMetaFileRenderer->DrawDriverString(oString, arPoints);
 	}
 
 	void CWmfInterpretatorRender::StartPath()

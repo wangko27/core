@@ -448,7 +448,7 @@ public:
 	TSvmColor		Color;
 };
 
-int parseString(CDataStream &stream, std::wstring &string, unsigned short version = 0, unsigned short charset = 0);
+int parseString(CDataStream &stream, NSStringUtils::CStringUTF32 &string, unsigned short version = 0, unsigned short charset = 0);
 
 CDataStream& operator>>(CDataStream &stream, VersionCompat &compat);
 CDataStream& operator>>(CDataStream &stream, Fraction &fract);

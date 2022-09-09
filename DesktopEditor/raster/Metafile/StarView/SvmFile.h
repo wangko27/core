@@ -468,7 +468,7 @@ class CSvmFile : virtual public IMetaFileBase
 		if (m_pOutput)
 			m_pOutput->UpdateDC();
 	}
-	void DrawText(std::wstring& wsString, unsigned int unCharsCount, TSvmRect& rect)
+	void DrawText(NSStringUtils::CStringUTF32& oString, TSvmRect& rect)
 	{
 		int nX = rect.l;
 		int nY = rect.t;
@@ -488,12 +488,12 @@ class CSvmFile : virtual public IMetaFileBase
 			TranslatePoint(nX, nY, dX, dY);
 			TranslatePoint(nX1, nY1, dX1, dY1);
 
-			double* pdDx =  new double[unCharsCount];
+			double* pdDx =  new double[oString.length()];
 			if (pdDx)
 			{
-				for (unsigned int unCharIndex = 0; unCharIndex < unCharsCount; unCharIndex++)
+				for (unsigned int unCharIndex = 0; unCharIndex < oString.length(); unCharIndex++)
 				{
-					pdDx[unCharIndex] = (dX1 - dX)/unCharsCount;
+					pdDx[unCharIndex] = (dX1 - dX)/oString.length();
 				}
 			}
 			TSvmMapMode aMapMode_new, aMapMode_old;
@@ -503,7 +503,7 @@ class CSvmFile : virtual public IMetaFileBase
 
 			m_pDC->SetMapMode(aMapMode_new);
 
-			m_pOutput->DrawString(wsString, unCharsCount, dX, dY, pdDx);
+			m_pOutput->DrawString(oString, dX, dY, pdDx);
 
 			m_pDC->SetMapMode(aMapMode_old);
 			if (pdDx)
@@ -511,7 +511,7 @@ class CSvmFile : virtual public IMetaFileBase
 		}
 	}
 
-        void DrawText(std::wstring& wsString, unsigned int unCharsCount, int _nX, int _nY, int* pnDx = NULL, unsigned int nDxSize = 0)
+		void DrawText(NSStringUtils::CStringUTF32& oString, int _nX, int _nY, int* pnDx = NULL, unsigned int nDxSize = 0)
 	{
 		int nX = _nX;
 		int nY = _nY;
@@ -530,7 +530,7 @@ class CSvmFile : virtual public IMetaFileBase
 			double* pdDx = NULL;
 			if (pnDx)
 			{
-				pdDx = new double[unCharsCount];
+				pdDx = new double[oString.length()];
 				if (pdDx)
 				{
 					int nCurX		= nX;
@@ -539,7 +539,7 @@ class CSvmFile : virtual public IMetaFileBase
 					int nCurXFirst		= nX;
 					double dCurXFirst	= dX;
 
-					for (unsigned int unCharIndex = 0; unCharIndex < unCharsCount; unCharIndex++)
+					for (unsigned int unCharIndex = 0; unCharIndex < oString.length(); unCharIndex++)
 					{
 						int nX1 = nCurXFirst + (unCharIndex < nDxSize ? pnDx[unCharIndex] : 0);
 						double dX1, dY1;
@@ -560,7 +560,7 @@ class CSvmFile : virtual public IMetaFileBase
 
 			m_pDC->SetMapMode(aMapMode_new);
 
-			m_pOutput->DrawString(wsString, unCharsCount, dX, dY, pdDx);
+			m_pOutput->DrawString(oString, dX, dY, pdDx);
 
 			m_pDC->SetMapMode(aMapMode_old);
 			if (pdDx)

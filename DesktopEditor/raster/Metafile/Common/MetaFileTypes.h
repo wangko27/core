@@ -34,6 +34,7 @@
 
 #include <string>
 #include "../../../common/StringExt.h"
+#include "../../../Common/StringUTF32.h"
 
 #ifndef BYTE
 typedef unsigned char BYTE;

@@ -419,7 +419,7 @@ namespace MetaFile
 		}
 	}
 
-	void CEmfParserBase::DrawText(std::wstring &wsString, unsigned int unCharsCount, int _nX, int _nY,
+	void CEmfParserBase::DrawText(NSStringUtils::CStringUTF32& oString, int _nX, int _nY,
 								  int *pnDx, int iGraphicsMode, TEmfScale oScale)
 	{
 		int nX = _nX;
@@ -439,13 +439,13 @@ namespace MetaFile
 			double* pdDx = NULL;
 			if (pnDx)
 			{
-				pdDx = new double[unCharsCount];
+				pdDx = new double[oString.length()];
 				if (pdDx)
 				{
 					int nCurX = nX;
 					double dCurX = dX;
 
-					for (unsigned int unCharIndex = 0; unCharIndex < unCharsCount; unCharIndex++)
+					for (unsigned int unCharIndex = 0; unCharIndex < oString.length(); unCharIndex++)
 					{
 						int nX1 = nCurX + pnDx[unCharIndex];
 						double dX1, dY1;
@@ -457,7 +457,7 @@ namespace MetaFile
 				}
 			}
 
-			m_pInterpretator->DrawString(wsString, unCharsCount, dX, dY, pdDx, iGraphicsMode, oScale.dX, oScale.dY);
+			m_pInterpretator->DrawString(oString, dX, dY, pdDx, iGraphicsMode, oScale.dX, oScale.dY);
 
 			if (pdDx)
 				delete[] pdDx;
@@ -539,7 +539,16 @@ namespace MetaFile
 			}
 		}
 
-		DrawText(wsText, oText.Chars, oText.Reference.x, oText.Reference.y, pDx, iGraphicsMode, oScale);
+		unsigned int unLen = 0;
+
+		unsigned int *pTempString = NSStringExt::CConverter::GetUtf32FromUnicode(wsText, unLen);
+
+		NSStringUtils::CStringUTF32 oString(pTempString, unLen);
+
+		if (pTempString)
+			delete[] pTempString;
+
+		DrawText(oString, oText.Reference.x, oText.Reference.y, pDx, iGraphicsMode, oScale);
 
 		if (pDx)
 			delete[] pDx;
@@ -559,7 +568,6 @@ namespace MetaFile
 			// Здесь мы эмулируем конвертацию Utf16 в Utf32, чтобы правильно получить массив pDx
 			pDx = new int[oText.Chars];
 			unLen = 0;
-
 			unsigned short* pUtf16 = (unsigned short*)oText.OutputString;
 			wchar_t wLeading, wTrailing;
 			unsigned int unCode;
@@ -608,8 +616,15 @@ namespace MetaFile
 				delete[] pUnicodes;
 		}
 
+		unsigned int *pTempString = NSStringExt::CConverter::GetUtf32FromUnicode(wsText, unLen);
+
+		NSStringUtils::CStringUTF32 oString(pTempString, unLen);
+
+		if (pTempString)
+			delete[] pTempString;
+
 		if (unLen)
-			DrawText(wsText, unLen, oText.Reference.x, oText.Reference.y, pDx, iGraphicsMode, oScale);
+			DrawText(oString, oText.Reference.x, oText.Reference.y, pDx, iGraphicsMode, oScale);
 
 		if (pDx)
 			delete[] pDx;
