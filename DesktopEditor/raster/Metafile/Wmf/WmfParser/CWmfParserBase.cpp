@@ -420,16 +420,25 @@ namespace MetaFile
 			double dX, dY;
 			TranslatePoint(nX, nY, dX, dY);
 
+			unsigned int unLen = 0;
+
+			unsigned int *pTempString = NSStringExt::CConverter::GetUtf32FromUnicode(wsText, unLen);
+
+			NSStringUtils::CStringUTF32 oString(pTempString, unLen);
+
+			if (pTempString)
+				delete[] pTempString;
+
 			double* pdDx = NULL;
 			if (NULL != pDx)
 			{
-				pdDx = new double[wsText.length()];
+				pdDx = new double[unLen];
 				if (pdDx)
 				{
 					int nCurX = nX;
 					double dCurX = dX;
-					unsigned int unStep = unCharsCount / wsText.length();
-					for (unsigned int unCharIndex = 0; unCharIndex < wsText.length(); ++unCharIndex)
+					unsigned int unStep = unCharsCount / unLen;
+					for (unsigned int unCharIndex = 0; unCharIndex < unLen; ++unCharIndex)
 					{
 						int nX1 = nCurX + pDx[unCharIndex * unStep];
 						double dX1, dY1;
@@ -442,15 +451,6 @@ namespace MetaFile
 					}
 				}
 			}
-
-			unsigned int unLen = 0;
-
-			unsigned int *pTempString = NSStringExt::CConverter::GetUtf32FromUnicode(wsText, unLen);
-
-			NSStringUtils::CStringUTF32 oString(pTempString, unLen);
-
-			if (pTempString)
-				delete[] pTempString;
 
 			m_pInterpretator->DrawString(oString, dX, dY, pdDx);
 
