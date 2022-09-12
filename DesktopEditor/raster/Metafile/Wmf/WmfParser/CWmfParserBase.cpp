@@ -423,14 +423,15 @@ namespace MetaFile
 			double* pdDx = NULL;
 			if (NULL != pDx)
 			{
-				pdDx = new double[unCharsCount];
+				pdDx = new double[wsText.length()];
 				if (pdDx)
 				{
 					int nCurX = nX;
 					double dCurX = dX;
-					for (unsigned int unCharIndex = 0; unCharIndex < unCharsCount; unCharIndex++)
+					unsigned int unStep = unCharsCount / wsText.length();
+					for (unsigned int unCharIndex = 0; unCharIndex < wsText.length(); ++unCharIndex)
 					{
-						int nX1 = nCurX + pDx[unCharIndex];
+						int nX1 = nCurX + pDx[unCharIndex * unStep];
 						double dX1, dY1;
 						TranslatePoint(nX1, nY, dX1, dY1);
 
